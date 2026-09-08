@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import Pagination from "@mui/material/Pagination";
-import { InfoIcon, XIcon, CoffeeBeanIcon } from "@phosphor-icons/react";
+import { XIcon, CoffeeBeanIcon } from "@phosphor-icons/react";
 import type { CatalogPage, Coffee, Kind, Roaster, Stats } from "../api/catalog";
 import { CoffeeCards, RoasterTable } from "./Cards";
 import { Filters } from "./Filters";
@@ -107,12 +107,6 @@ function CatalogFooter({
   const end = data ? Math.min(data.page * data.pageSize, total) : 0;
   return (
     <footer className="catalog-footer">
-      {kind === "coffees" && (
-        <p className="price-note">
-          <InfoIcon size={20} />
-          Prices are snapshots from roaster websites.
-        </p>
-      )}
       {data && (
         <div className="pagination-row">
           <p>

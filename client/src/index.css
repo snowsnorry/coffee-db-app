@@ -85,36 +85,38 @@ h3 {
   top: 10px;
 }
 .site-header {
-  height: 79px;
+  height: 64px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 80px;
+  gap: 56px;
   padding: 0 32px;
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -1.1px;
+  letter-spacing: -0.8px;
   color: #3a392a;
   white-space: nowrap;
 }
 .brand svg {
+  width: 30px;
+  height: 30px;
   color: #56583f;
 }
 .site-header nav {
   display: flex;
-  gap: 33px;
+  gap: 24px;
   align-self: stretch;
   align-items: center;
 }
 .site-header nav a {
-  font-size: 19px;
-  padding: 12px 10px 7px;
+  font-size: 16px;
+  padding: 9px 8px 7px;
   border-bottom: 2px solid transparent;
 }
 .site-header nav a[aria-current="page"] {
@@ -266,22 +268,24 @@ a:hover {
 .search-row {
   display: flex;
   align-items: center;
-  gap: 28px;
-  margin-bottom: 28px;
+  gap: 24px;
+  margin-bottom: 18px;
 }
 .catalog-search {
   display: flex;
   flex: 1;
   min-width: 0;
   align-items: center;
-  height: 54px;
+  height: 44px;
   border: 1px solid #cbc7be;
   border-radius: 5px;
   background: #fff7;
   overflow: hidden;
 }
 .catalog-search > svg {
-  margin-left: 16px;
+  width: 22px;
+  height: 22px;
+  margin-left: 12px;
   flex-shrink: 0;
   color: #55503e;
 }
@@ -292,8 +296,8 @@ a:hover {
   border: 0;
   outline: 0;
   background: transparent;
-  padding: 14px;
-  font-size: 18px;
+  padding: 10px 12px;
+  font-size: 16px;
 }
 .catalog-search:focus-within {
   outline: 2px solid var(--accent);
@@ -301,10 +305,10 @@ a:hover {
 }
 .catalog-search button {
   align-self: stretch;
-  padding: 0 31px;
+  padding: 0 22px;
   background: var(--accent);
   color: #fff;
-  font-size: 19px;
+  font-size: 16px;
 }
 .catalog-search button:hover,
 .primary-button:hover {
@@ -312,16 +316,16 @@ a:hover {
 }
 .catalog-stats {
   min-width: 178px;
-  font-size: 22px;
+  font-size: 16px;
   line-height: 1.2;
 }
 .catalog-stats strong {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.5px;
 }
 .catalog-stats p {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
   margin-top: 3px;
 }
@@ -330,11 +334,11 @@ a:hover {
   justify-content: space-between;
   align-items: center;
   gap: 15px;
-  margin-bottom: 18px;
-  min-height: 37px;
+  margin-bottom: 14px;
+  min-height: 36px;
 }
 .results-toolbar h1 {
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.4px;
 }
@@ -363,8 +367,8 @@ a:hover {
 }
 .coffee-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px 24px;
+  grid-template-columns: repeat(4, minmax(0, 280px));
+  gap: 24px;
 }
 .coffee-card {
   min-width: 0;
@@ -498,7 +502,7 @@ a:hover {
 }
 .catalog-footer {
   margin-top: auto;
-  padding-top: 32px;
+  padding-top: 16px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -507,25 +511,29 @@ a:hover {
   color: var(--muted);
   font-size: 15px;
 }
-.price-note {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.price-note svg {
-  flex-shrink: 0;
-}
 .pagination-row {
   display: flex;
   gap: 18px;
   align-items: center;
-  margin-left: auto;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
-.pagination-row .Mui-selected {
-  background: #e9e8df;
-  color: #25261b;
+.pagination-row .MuiPaginationItem-root {
+  min-width: 38px;
+  height: 38px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.pagination-row .MuiPaginationItem-icon {
+  font-size: 22px;
+}
+.pagination-row .MuiPaginationItem-root.Mui-selected {
+  background: #3a392a;
+  color: #fff;
+  font-weight: 600;
+}
+.pagination-row .MuiPaginationItem-root.Mui-selected:hover {
+  background: #50513d;
 }
 .loading-results,
 .result-message {
@@ -601,9 +609,6 @@ a:hover {
     padding-right: 36px;
     padding-left: 36px;
   }
-  .coffee-grid {
-    gap: 28px;
-  }
 }
 @media (min-width: 900px) and (max-width: 1279px) {
   .catalog-layout {
@@ -613,7 +618,7 @@ a:hover {
     padding-inline: 18px;
   }
   .coffee-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 280px));
   }
   .search-row {
     flex-wrap: wrap;
@@ -641,11 +646,11 @@ a:hover {
 @media (max-width: 899px) {
   .site-header {
     padding: 0 22px;
-    height: 72px;
+    height: 64px;
     gap: 40px;
   }
   .brand {
-    font-size: 29px;
+    font-size: 28px;
   }
   .site-header nav {
     gap: 15px;
@@ -677,7 +682,7 @@ a:hover {
     font-size: 22px;
   }
   .coffee-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 280px));
     gap: 24px;
   }
   .mobile-filters {
@@ -754,14 +759,14 @@ a:hover {
 @media (max-width: 599px) {
   .site-header {
     height: auto;
-    min-height: 72px;
-    padding: 13px 16px;
+    min-height: 64px;
+    padding: 10px 16px;
     flex-wrap: wrap;
     gap: 9px 26px;
     justify-content: space-between;
   }
   .brand {
-    font-size: 27px;
+    font-size: 25px;
   }
   .brand svg {
     width: 30px;
@@ -777,7 +782,7 @@ a:hover {
     padding: 16px;
   }
   .catalog-search {
-    height: 48px;
+    height: 44px;
   }
   .catalog-search > svg {
     width: 23px;
@@ -803,7 +808,7 @@ a:hover {
     gap: 10px;
   }
   .results-toolbar h1 {
-    font-size: 23px;
+    font-size: 22px;
   }
   .results-controls {
     width: 100%;
@@ -829,16 +834,20 @@ a:hover {
     font-size: 17px;
   }
   .catalog-footer {
-    padding-top: 28px;
+    padding-top: 16px;
   }
   .pagination-row {
-    justify-content: center;
     width: 100%;
     gap: 12px;
   }
+  .pagination-row .MuiPaginationItem-root {
+    min-width: 28px;
+    height: 36px;
+    margin-inline: 1px;
+    font-size: 15px;
+  }
   .pagination-row p {
     width: 100%;
-    text-align: center;
   }
   .dialog-heading,
   .dialog-actions {
