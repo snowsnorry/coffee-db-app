@@ -26,6 +26,7 @@ Database connectivity lives in `server/src/database.ts`; catalogue SQL and HTTP 
 ## Cross-cutting tooling
 
 - Root `package.json` is the canonical command surface.
+- `render.yaml` defines the Render web service, production build/start commands, health check and required database secrets.
 - `vitest.config.mts` combines client and server test projects.
 - `playwright.config.ts` starts a production-like build for desktop and mobile catalogue tests with a dedicated fixture server.
 - `tests/integration/` verifies SQL in a transactional development-only schema.

@@ -60,7 +60,25 @@ npm run build
 npm start
 ```
 
-With `DATABASE_URL` available through `.env` or the process environment, Express serves the built client and API at `http://localhost:3000`. Override the port with `PORT`. `npm start` sets `NODE_ENV=production`; an explicit shell/CI value still has normal process-environment precedence over `.env`. Database connections close on SIGINT/SIGTERM. Deployment is not included in this change.
+With `DATABASE_URL` available through `.env` or the process environment, Express serves the built client and API at `http://localhost:3000`. Override the port with `PORT`. `npm start` sets `NODE_ENV=production`; an explicit shell/CI value still has normal process-environment precedence over `.env`. Database connections close on SIGINT/SIGTERM.
+
+## Deployment
+
+### Render web service
+
+The repository includes a [Render Blueprint](render.yaml) for one web service that builds both workspaces and serves the client and API from Express.
+
+- build command: `npm ci --include=dev && npm run build`
+- start command: `npm run start`
+- health check: `/health`
+- runtime: Node.js 24
+
+Create a Blueprint in Render from this repository and provide these secret environment variables when prompted:
+
+- `DATABASE_URL` — the pooled or direct PostgreSQL connection used by API requests
+- `DATABASE_SCHEMA_URL` — a direct PostgreSQL connection used during schema initialization
+
+For Neon, both URLs must target the same database and role. Use the pooled connection for `DATABASE_URL` and the direct connection for `DATABASE_SCHEMA_URL`. If `DATABASE_URL` is already a direct connection, the same URL can be supplied for both variables. Render supplies `PORT` automatically; do not add it to the Blueprint.
 
 ## Validation
 
