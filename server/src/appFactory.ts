@@ -31,6 +31,30 @@ export function createApp(options: CreateAppOptions = {}) {
   const clientDistPath = options.clientDistPath ?? DEFAULT_CLIENT_DIST_PATH;
 
   app.disable("x-powered-by");
+  app.use((_request, response, next) => {
+    response.set({
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "X-Frame-Options": "DENY",
+      "Content-Security-Policy": "frame-ancestors 'none'",
+      // Observe resource restrictions before enforcing them on the deployed UI.
+      // Emotion injects style elements; MUI also uses inline style attributes.
+      "Content-Security-Policy-Report-Only": [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' http: https:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "frame-src 'none'",
+        "base-uri 'none'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+      ].join("; "),
+    });
+    next();
+  });
   app.use(express.json());
   app.get("/health", healthHandler);
   app.get("/api/health", healthHandler);

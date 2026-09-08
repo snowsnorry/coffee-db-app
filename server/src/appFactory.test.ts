@@ -35,6 +35,7 @@ describe("production client serving", () => {
       path.join(clientDistPath, "index.html"),
       "<!doctype html><title>Coffee DB test</title>",
     );
+    fs.writeFileSync(path.join(clientDistPath, "app.js"), "export {};");
   });
 
   afterAll(() => {
@@ -48,4 +49,47 @@ describe("production client serving", () => {
     expect(response.status).toBe(200);
     expect(response.text).toContain("Coffee DB test");
   });
+
+  it.each([
+    ["/", 200],
+    ["/coffee", 200],
+    ["/app.js", 200],
+    ["/health", 200],
+    ["/api/health", 200],
+    ["/api/missing", 404],
+    ["/api/coffees", 503],
+  ])("sets security headers on %s", async (route, status) => {
+    const response = await request(
+      createApp({ clientDistPath, serveClient: true }),
+    ).get(route);
+    expect(response.status).toBe(status);
+    expectSecurityHeaders(response.headers);
+  });
+
+  it("sets headers before JSON parsing, including malformed request errors", async () => {
+    const response = await request(createApp())
+      .post("/api/coffees")
+      .set("Content-Type", "application/json")
+      .send("{");
+    expect(response.status).toBe(400);
+    expectSecurityHeaders(response.headers, true);
+  });
 });
+
+function expectSecurityHeaders(headers: Record<string, string>, error = false) {
+  expect(headers["x-powered-by"]).toBeUndefined();
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("no-referrer");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  // Express finalhandler applies its stricter CSP to its own error documents.
+  expect(headers["content-security-policy"]).toBe(
+    error ? "default-src 'none'" : "frame-ancestors 'none'",
+  );
+  const policy = headers["content-security-policy-report-only"];
+  expect(policy).toContain("script-src 'self';");
+  expect(policy).toContain("style-src 'self' 'unsafe-inline';");
+  expect(policy).toContain("img-src 'self' http: https:;");
+  expect(policy).toContain("object-src 'none';");
+  expect(policy).toContain("base-uri 'none';");
+  expect(policy).not.toContain("unsafe-eval");
+}
