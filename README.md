@@ -9,7 +9,13 @@ A working catalogue of coffee products and roasters, with PostgreSQL-backed sear
 - Tests: Vitest, Testing Library, PostgreSQL integration tests, Playwright
 - Quality: ESLint, Prettier, dependency-cruiser, Knip, coverage and source-size gates
 
-See [docs/handoff.md](docs/handoff.md) for source-data semantics and [docs/catalog-api.md](docs/catalog-api.md) for the API contract.
+See [docs/catalog-api.md](docs/catalog-api.md) for the API contract.
+
+## Data model
+
+The catalogue uses two PostgreSQL tables: `roasters` and `coffee_products`. A roaster is identified by an internal ID and a unique canonical domain; each coffee product belongs to exactly one roaster through `coffee_products.roaster_id`, with deletion restricted while products still reference that roaster. The executable table and index definitions in [server/src/databaseSchema.ts](server/src/databaseSchema.ts) are the schema contract used at application startup.
+
+The prepared dataset is a snapshot dated 7 September 2026 containing 8,451 roasters across 44 countries and 130,616 coffee products. Of those roasters, 6,567 have products and 1,884 do not. Dataset IDs are internal database keys. `product_key` is the stable import/deduplication key; `platform_product_id` is not globally unique. Product names, descriptions, URLs, images, languages and prices come from external shops and may be incomplete, inconsistent or stale.
 
 ## Setup and development
 
@@ -40,7 +46,7 @@ When `DATABASE_URL` is set, the server creates missing catalogue tables and inde
 
 Set `DATABASE_SCHEMA_URL` to a direct connection using the same database, schema and role when `DATABASE_URL` uses a transaction-mode pooler, including a pooled Neon endpoint. Using the same role ensures the API can access the objects it creates during startup. Schema initialization requires a stable PostgreSQL session; after initialization, the direct pool is closed and normal API traffic continues through `DATABASE_URL`. If `DATABASE_SCHEMA_URL` is absent, initialization uses `DATABASE_URL`.
 
-`IF NOT EXISTS` does not reshape an existing table or replace an existing index with the same name. Existing objects must already match the schema documented in [docs/handoff.md](docs/handoff.md).
+`IF NOT EXISTS` does not reshape an existing table or replace an existing index with the same name. Existing objects must already match the definitions in [server/src/databaseSchema.ts](server/src/databaseSchema.ts).
 
 - UI: `http://localhost:5173/coffee` and `/roasters`
 - API: `http://localhost:3000/api`; Vite proxies same-origin `/api` requests.
@@ -76,7 +82,7 @@ E2E tests start a separate production-like server with deterministic fixture dat
 
 For SQL integration, set `TEST_DATABASE_URL` in `.env` or the process environment to a direct connection to a development database, then run `npm run test:integration`. The test creates a uniquely named schema, initializes it twice, installs fixtures, verifies real SQL, and removes the schema afterward. Never point it at production. Missing credentials cause a clear failure rather than a silently skipped check.
 
-With the real-data preview running, `npm run test:visual` captures both catalogues at 1487, 1920, 1024, 390 and 320 px plus the mobile filter dialog. `CATALOG_PREVIEW_URL` can override the default `http://localhost:3000`. This opt-in check expects the handoff dataset counts and saves screenshots under `/private/tmp/coffee-db-qa`.
+With the real-data preview running, `npm run test:visual` captures both catalogues at 1487, 1920, 1024, 390 and 320 px plus the mobile filter dialog. `CATALOG_PREVIEW_URL` can override the default `http://localhost:3000`. This opt-in check expects the prepared snapshot counts listed above and saves screenshots under `/private/tmp/coffee-db-qa`.
 
 ## Data limitations
 
