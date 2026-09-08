@@ -20,6 +20,13 @@ body {
   margin: 0;
   min-width: 320px;
   background: #faf9f5;
+  overflow: hidden;
+}
+#root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 button,
 input,
@@ -79,6 +86,7 @@ h3 {
 }
 .site-header {
   height: 79px;
+  flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -116,11 +124,18 @@ h3 {
 }
 .catalog-layout {
   display: grid;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
   grid-template-columns: 274px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 .desktop-sidebar {
   border-right: 1px solid var(--border);
-  min-height: calc(100vh - 79px);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
 }
 .filters-content {
   padding: 17px 23px 30px;
@@ -232,7 +247,21 @@ a:hover {
   padding: 17px 24px 25px 26px;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 79px);
+  min-height: 0;
+  overflow: hidden;
+}
+.catalog-results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  padding: 3px;
+}
+.search-row,
+.results-toolbar,
+.catalog-footer {
+  flex-shrink: 0;
 }
 .search-row {
   display: flex;
@@ -622,14 +651,13 @@ a:hover {
     gap: 15px;
   }
   .catalog-layout {
-    display: block;
+    grid-template-columns: minmax(0, 1fr);
   }
   .desktop-sidebar {
     display: none;
   }
   .catalog-main {
     padding: 20px 22px;
-    min-height: calc(100vh - 72px);
   }
   .search-row {
     flex-wrap: wrap;

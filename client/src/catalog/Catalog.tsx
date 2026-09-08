@@ -201,7 +201,6 @@ export default function Catalog() {
     const next = new URLSearchParams(params);
     next.set("page", String(value));
     change(next);
-    window.scrollTo({ top: 0, behavior: "instant" });
   };
   return (
     <>
@@ -225,11 +224,18 @@ export default function Catalog() {
             onChange={change}
             onOpenFilters={() => setFiltersOpen(true)}
           />
-          <Results
-            kind={kind}
-            resource={resource}
-            onClear={() => change(new URLSearchParams())}
-          />
+          <section
+            key={`${kind}:${params}`}
+            className="catalog-results"
+            aria-labelledby="results-title"
+            tabIndex={0}
+          >
+            <Results
+              kind={kind}
+              resource={resource}
+              onClear={() => change(new URLSearchParams())}
+            />
+          </section>
           <CatalogFooter kind={kind} data={resource.data} onPage={page} />
         </main>
       </div>

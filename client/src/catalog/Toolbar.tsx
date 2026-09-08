@@ -84,7 +84,7 @@ export function ResultsToolbar({
     (params.get("q") && kind === "coffees" ? "relevance" : "nameAsc");
   return (
     <div className="results-toolbar">
-      <h1 aria-live="polite">
+      <h1 id="results-title" aria-live="polite">
         {total === undefined ? "Discover" : number(total)} {kind}
       </h1>
       <div className="results-controls">
