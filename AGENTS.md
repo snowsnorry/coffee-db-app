@@ -2,7 +2,7 @@
 
 ## Repository purpose
 
-This repository is a full-stack catalogue for coffee roasters and coffee products. The current milestone is an executable skeleton; consult `PRODUCT.md` and `docs/handoff.md` before introducing domain behavior.
+This repository is a full-stack catalogue for coffee roasters and coffee products. The current milestone provides searchable, database-backed catalogues; consult `PRODUCT.md` and `docs/handoff.md` before introducing domain behavior.
 
 ## Architecture
 

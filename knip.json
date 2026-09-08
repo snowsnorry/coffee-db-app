@@ -1,1 +1,11 @@
-{}
+{
+  "workspaces": {
+    ".": {
+      "entry": [
+        "playwright.visual.config.ts",
+        "tests/e2e/server.ts",
+        "tests/integration/*.test.ts"
+      ]
+    }
+  }
+}

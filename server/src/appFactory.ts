@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import { catalogRoutes } from "./catalog/routes.js";
+import type { CatalogRepository } from "./catalog/types.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express, { type RequestHandler } from "express";
@@ -9,6 +11,7 @@ export const HEALTH_PAYLOAD = Object.freeze({
 } as const);
 
 export type CreateAppOptions = {
+  catalog?: CatalogRepository;
   clientDistPath?: string;
   serveClient?: boolean;
 };
@@ -31,6 +34,16 @@ export function createApp(options: CreateAppOptions = {}) {
   app.use(express.json());
   app.get("/health", healthHandler);
   app.get("/api/health", healthHandler);
+
+  const catalogue = catalogRoutes(options.catalog);
+  app.use("/api", (req, res, next) => {
+    if (
+      /^\/(coffees|roasters)(\/facets)?\/?$/.test(req.path) ||
+      req.path === "/catalog/stats"
+    )
+      return catalogue(req, res, next);
+    next();
+  });
 
   app.use("/api", (_request, response) => {
     response.status(404).json({ error: "not_found" });

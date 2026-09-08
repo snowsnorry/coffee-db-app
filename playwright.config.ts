@@ -17,7 +17,7 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: `npm run build && NODE_ENV=production PORT=${E2E_PORT} npm start`,
+    command: `npm run build && PORT=${E2E_PORT} npx tsx tests/e2e/server.ts`,
     url: `${E2E_BASE_URL}/health`,
     timeout: 120_000,
     reuseExistingServer: false,
@@ -25,7 +25,10 @@ export default defineConfig({
   projects: [
     {
       name: "chromium-desktop",
-      use: devices["Desktop Chrome"],
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1487, height: 1058 },
+      },
     },
     {
       name: "chromium-mobile",

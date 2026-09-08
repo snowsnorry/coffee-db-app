@@ -3,5 +3,11 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["*.config.ts", "server/*.config.ts", "tests/e2e/**/*.ts"]
+  "include": [
+    "*.config.ts",
+    "server/*.config.ts",
+    "tests/e2e/**/*.ts",
+    "tests/integration/**/*.ts",
+    "tests/visual/**/*.ts"
+  ]
 }
