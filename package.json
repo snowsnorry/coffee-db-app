@@ -1,0 +1,64 @@
+{
+  "name": "coffee-db-app",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "scripts": {
+    "build": "npm --workspace client run build && npm --workspace server run build",
+    "start": "npm --workspace server run start",
+    "dev:client": "npm --workspace client run dev",
+    "dev:server": "npm --workspace server run dev",
+    "dev:all": "concurrently -k -n client,server \"npm:dev:client\" \"npm:dev:server\"",
+    "playwright:install": "playwright install chromium",
+    "test:e2e": "playwright test",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "typecheck": "npm run typecheck:client && npm run typecheck:server",
+    "typecheck:client": "npm --workspace client run typecheck",
+    "typecheck:server": "npm --workspace server run typecheck",
+    "test": "vitest run",
+    "test:client": "vitest run --project client",
+    "test:server": "vitest run --project server",
+    "lint": "eslint .",
+    "lint:strict": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "coverage": "npm run coverage:client && npm run coverage:server",
+    "coverage:client": "vitest run --coverage --project client",
+    "coverage:server": "vitest run --coverage --project server",
+    "format": "prettier --write \"client/**/*.{ts,tsx,css,html,json}\" \"server/**/*.{ts,json}\" \"tests/e2e/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\" \"*.{json,md,mjs,ts}\" \"docs/repo_map.md\" \".agents/skills/*/SKILL.md\"",
+    "format:check": "prettier --check \"client/**/*.{ts,tsx,css,html,json}\" \"server/**/*.{ts,json}\" \"tests/e2e/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\" \"*.{json,md,mjs,ts}\" \"docs/repo_map.md\" \".agents/skills/*/SKILL.md\"",
+    "quality:deps": "depcruise client/src server/src --config .dependency-cruiser.cjs",
+    "quality:unused": "knip",
+    "quality:large-files": "find client/src server/src -type f \\( -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.js\" -o -name \"*.jsx\" \\) -not -path \"*/node_modules/*\" -not -path \"*/dist/*\" -exec wc -l {} + | sort -nr | head -40",
+    "quality:large-files:strict": "node scripts/check-large-files.mjs",
+    "quality:gate": "npm run lint:strict && npm run typecheck && npm run build && npm run coverage && npm run quality:deps && npm run quality:large-files:strict && npm run format:check && npm run quality:unused && npm run test:e2e",
+    "quality": "npm run quality:gate && npm run quality:large-files",
+    "security:audit": "npm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@vitest/coverage-v8": "^4.1.11",
+    "concurrently": "^10.0.5",
+    "dependency-cruiser": "^18.2.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.10.0",
+    "knip": "^6.32.2",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
+  }
+}

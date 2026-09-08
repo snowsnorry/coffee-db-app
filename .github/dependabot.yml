@@ -1,0 +1,54 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      react-ui:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "@mui/*"
+          - "@emotion/*"
+      vite-build:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "@tailwindcss/*"
+          - "tailwindcss"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "jsdom"
+          - "@testing-library/*"
+      playwright:
+        patterns:
+          - "@playwright/*"
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "eslint-*"
+      typescript:
+        patterns:
+          - "typescript"
+          - "tsx"
+          - "@types/*"
+      quality-tooling:
+        patterns:
+          - "prettier"
+          - "dependency-cruiser"
+          - "knip"
+          - "concurrently"
+      server-runtime:
+        dependency-type: "production"
+        patterns:
+          - "express"
+
