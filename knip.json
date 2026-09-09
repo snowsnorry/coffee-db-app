@@ -1,4 +1,5 @@
 {
+  "ignoreFiles": [".agents/**"],
   "workspaces": {
     ".": {
       "entry": [

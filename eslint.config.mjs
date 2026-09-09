@@ -17,6 +17,7 @@ export default tseslint.config(
       "playwright-report/**",
       "test-results/**",
       ".dependency-cruiser.cjs",
+      ".agents/**",
     ],
   },
   {
