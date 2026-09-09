@@ -6,6 +6,8 @@ function persistedParams(kind: Kind, params: URLSearchParams) {
   for (const key of filtersFor(kind)) {
     for (const value of params.getAll(key)) persisted.append(key, value);
   }
+  const query = params.get("q");
+  if (query) persisted.set("q", query);
   const sort = params.get("sort");
   if (sort) persisted.set("sort", sort);
   return persisted;
@@ -32,32 +34,44 @@ export function persistFilters(kind: Kind, params: URLSearchParams) {
 }
 const subscribe = (callback: () => void) => {
   window.addEventListener("popstate", callback);
-  return () => window.removeEventListener("popstate", callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener("storage", callback);
+  };
 };
+function locationSnapshot() {
+  const href = window.location.pathname + window.location.search;
+  const kind: Kind = href.startsWith("/roasters") ? "roasters" : "coffees";
+  return JSON.stringify([href, storedFilters(kind).get("q") ?? ""]);
+}
 export function navigate(url: string) {
   window.history.pushState(null, "", url);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 export function useCatalogLocation() {
-  const href = useSyncExternalStore(
-    subscribe,
-    () => window.location.pathname + window.location.search,
-  );
+  const snapshot = useSyncExternalStore(subscribe, locationSnapshot);
+  const [href, storedQuery] = JSON.parse(snapshot) as [string, string];
   const kind: Kind = href.startsWith("/roasters") ? "roasters" : "coffees";
   const urlParams = new URLSearchParams(href.split("?")[1]);
+  const stored = storedFilters(kind);
   const restored = urlParams.size === 0;
-  const params = restored ? storedFilters(kind) : urlParams;
-  const query = params.toString();
+  const params = restored ? stored : urlParams;
+  const query = urlParams.get("q") ?? storedQuery;
+  if (query) params.set("q", query);
+  const visibleUrl = catalogUrl(kind, params);
   useEffect(() => {
     persistFilters(kind, params);
-    if (!restored || !query) return;
-    window.history.replaceState(null, "", catalogUrl(kind, params));
+    if (href === visibleUrl) return;
+    window.history.replaceState(null, "", visibleUrl);
     window.dispatchEvent(new PopStateEvent("popstate"));
-  }, [kind, params, query, restored]);
+  }, [href, kind, params, visibleUrl]);
   return { kind, params };
 }
 export function catalogUrl(kind: Kind, params = new URLSearchParams()) {
-  const query = params.toString();
+  const visibleParams = new URLSearchParams(params);
+  visibleParams.delete("q");
+  const query = visibleParams.toString();
   return `${kind === "coffees" ? "/coffee" : "/roasters"}${query ? `?${query}` : ""}`;
 }
 export const filtersFor = (kind: Kind): FilterKey[] =>

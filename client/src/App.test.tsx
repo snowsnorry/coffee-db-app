@@ -134,14 +134,18 @@ describe("catalogue UI", () => {
     expect(window.location.search).toBe("?roaster=1");
     await user.click(screen.getByRole("link", { name: "Coffee" }));
   });
-  it("restores separate coffee and roaster filters across navigation and reloads", async () => {
+  it("restores separate catalogue parameters across navigation and reloads", async () => {
     const user = userEvent.setup();
     const view = render(<App />);
+    await user.type(await screen.findByRole("searchbox"), "floral");
+    await user.click(screen.getByRole("button", { name: "Search" }));
     await user.click(
       await screen.findByRole("checkbox", { name: /United States/ }),
     );
     await user.selectOptions(screen.getByRole("combobox"), "nameDesc");
     await user.click(screen.getByRole("link", { name: "Roasters" }));
+    await user.type(await screen.findByRole("searchbox"), "alpha");
+    await user.click(screen.getByRole("button", { name: "Search" }));
     await user.click(
       await screen.findByRole("checkbox", { name: /With coffee/ }),
     );
@@ -151,6 +155,7 @@ describe("catalogue UI", () => {
     await waitFor(() =>
       expect(window.location.search).toBe("?country=US&sort=nameDesc"),
     );
+    expect(screen.getByRole("searchbox")).toHaveValue("floral");
     expect(screen.getByRole("combobox")).toHaveValue("nameDesc");
     expect(
       await screen.findByRole("checkbox", { name: /United States/ }),
@@ -160,6 +165,7 @@ describe("catalogue UI", () => {
     await waitFor(() =>
       expect(window.location.search).toBe("?hasCoffee=yes&sort=coffeeCount"),
     );
+    expect(screen.getByRole("searchbox")).toHaveValue("alpha");
     expect(screen.getByRole("combobox")).toHaveValue("coffeeCount");
     expect(
       await screen.findByRole("checkbox", { name: /With coffee/ }),
@@ -171,6 +177,7 @@ describe("catalogue UI", () => {
     await waitFor(() =>
       expect(window.location.search).toBe("?country=US&sort=nameDesc"),
     );
+    expect(screen.getByRole("searchbox")).toHaveValue("floral");
     expect(screen.getByRole("combobox")).toHaveValue("nameDesc");
     expect(
       await screen.findByRole("checkbox", { name: /United States/ }),

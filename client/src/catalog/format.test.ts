@@ -69,10 +69,12 @@ describe("catalogue presentation and URL state", () => {
       "q=coffee&sort=nameDesc",
     );
     expect(catalogUrl("coffees")).toBe("/coffee");
-    expect(catalogUrl("roasters", initial)).toContain("/roasters?q=coffee");
+    expect(catalogUrl("roasters", initial)).toBe(
+      "/roasters?country=US&page=3&sort=nameDesc",
+    );
     expect(filtersFor("roasters")).toContain("hasCoffee");
   });
-  it("stores only the filters and sort supported by each catalogue", () => {
+  it("stores only the search, filters and sort supported by each catalogue", () => {
     persistFilters(
       "coffees",
       new URLSearchParams("country=US&roaster=1&q=floral&page=2&sort=nameDesc"),
@@ -80,15 +82,15 @@ describe("catalogue presentation and URL state", () => {
     persistFilters(
       "roasters",
       new URLSearchParams(
-        "country=CZ&hasCoffee=yes&roaster=ignored&sort=coffeeCount",
+        "country=CZ&hasCoffee=yes&roaster=ignored&q=alpha&page=3&sort=coffeeCount",
       ),
     );
 
     expect(storedFilters("coffees").toString()).toBe(
-      "roaster=1&country=US&sort=nameDesc",
+      "roaster=1&country=US&q=floral&sort=nameDesc",
     );
     expect(storedFilters("roasters").toString()).toBe(
-      "country=CZ&hasCoffee=yes&sort=coffeeCount",
+      "country=CZ&hasCoffee=yes&q=alpha&sort=coffeeCount",
     );
   });
 });
