@@ -723,6 +723,27 @@ a:hover {
     font-size: 14px;
   }
 }
+@media (min-width: 600px) and (max-width: 899px) {
+  .results-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .results-controls {
+    display: contents;
+  }
+  .results-toolbar .mobile-filters {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .results-toolbar h1 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .results-toolbar .sort-control {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
 @media (max-width: 899px) {
   .site-header {
     padding: 0 22px;
@@ -754,7 +775,7 @@ a:hover {
     flex-basis: 100%;
   }
   .catalog-stats {
-    display: flex;
+    display: none;
     gap: 12px;
     align-items: baseline;
     font-size: 18px;
