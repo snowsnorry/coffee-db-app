@@ -10,6 +10,8 @@ import {
   catalogUrl,
   clearFilters,
   navigate,
+  persistFilters,
+  storedFilters,
   useCatalogLocation,
 } from "./state";
 import { ResultsToolbar, SearchBar } from "./Toolbar";
@@ -19,10 +21,10 @@ function Header({ kind }: { kind: Kind }) {
     <header className="site-header">
       <a
         className="brand"
-        href="/coffee"
+        href={catalogUrl("coffees", storedFilters("coffees"))}
         onClick={(event) => {
           event.preventDefault();
-          navigate("/coffee");
+          navigate(catalogUrl("coffees", storedFilters("coffees")));
         }}
       >
         <CoffeeBeanIcon size={37} weight="fill" aria-hidden="true" />
@@ -33,10 +35,10 @@ function Header({ kind }: { kind: Kind }) {
           <a
             key={tab}
             aria-current={kind === tab ? "page" : undefined}
-            href={catalogUrl(tab)}
+            href={catalogUrl(tab, storedFilters(tab))}
             onClick={(event) => {
               event.preventDefault();
-              navigate(catalogUrl(tab));
+              navigate(catalogUrl(tab, storedFilters(tab)));
             }}
           >
             {tab === "coffees" ? "Coffee" : "Roasters"}
@@ -182,7 +184,10 @@ export default function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const resource = useResource<CatalogPage>(`/api/${kind}?${params}`);
   const stats = useResource<Stats>("/api/catalog/stats");
-  const change = (next: URLSearchParams) => navigate(catalogUrl(kind, next));
+  const change = (next: URLSearchParams) => {
+    persistFilters(kind, next);
+    navigate(catalogUrl(kind, next));
+  };
   const search = (q: string) => {
     const next = new URLSearchParams(params);
     next.delete("page");

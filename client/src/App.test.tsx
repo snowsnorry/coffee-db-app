@@ -63,6 +63,7 @@ function response(url: string) {
   };
 }
 beforeEach(() => {
+  window.localStorage.clear();
   window.history.replaceState(null, "", "/coffee");
   vi.stubGlobal("scrollTo", vi.fn());
   vi.stubGlobal(
@@ -130,8 +131,50 @@ describe("catalogue UI", () => {
     await screen.findByRole("heading", { name: "Floral" });
     expect(window.location.search).toBe("?roaster=1");
     await user.click(screen.getByRole("link", { name: "Coffee DB" }));
-    expect(window.location.search).toBe("");
+    expect(window.location.search).toBe("?roaster=1");
     await user.click(screen.getByRole("link", { name: "Coffee" }));
+  });
+  it("restores separate coffee and roaster filters across navigation and reloads", async () => {
+    const user = userEvent.setup();
+    const view = render(<App />);
+    await user.click(
+      await screen.findByRole("checkbox", { name: /United States/ }),
+    );
+    await user.selectOptions(screen.getByRole("combobox"), "nameDesc");
+    await user.click(screen.getByRole("link", { name: "Roasters" }));
+    await user.click(
+      await screen.findByRole("checkbox", { name: /With coffee/ }),
+    );
+    await user.selectOptions(screen.getByRole("combobox"), "coffeeCount");
+
+    await user.click(screen.getByRole("link", { name: "Coffee" }));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?country=US&sort=nameDesc"),
+    );
+    expect(screen.getByRole("combobox")).toHaveValue("nameDesc");
+    expect(
+      await screen.findByRole("checkbox", { name: /United States/ }),
+    ).toBeChecked();
+
+    await user.click(screen.getByRole("link", { name: "Roasters" }));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?hasCoffee=yes&sort=coffeeCount"),
+    );
+    expect(screen.getByRole("combobox")).toHaveValue("coffeeCount");
+    expect(
+      await screen.findByRole("checkbox", { name: /With coffee/ }),
+    ).toBeChecked();
+
+    view.unmount();
+    window.history.replaceState(null, "", "/coffee");
+    render(<App />);
+    await waitFor(() =>
+      expect(window.location.search).toBe("?country=US&sort=nameDesc"),
+    );
+    expect(screen.getByRole("combobox")).toHaveValue("nameDesc");
+    expect(
+      await screen.findByRole("checkbox", { name: /United States/ }),
+    ).toBeChecked();
   });
   it("keeps the website but offers no coffee navigation for an empty roaster", async () => {
     window.history.replaceState(null, "", "/roasters");

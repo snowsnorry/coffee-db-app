@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { countryName, facetLabel, location, price, safeUrl } from "./format";
-import { catalogUrl, clearFilters, filtersFor, toggleFilter } from "./state";
+import {
+  catalogUrl,
+  clearFilters,
+  filtersFor,
+  persistFilters,
+  storedFilters,
+  toggleFilter,
+} from "./state";
+beforeEach(() => window.localStorage.clear());
 describe("catalogue presentation and URL state", () => {
   it("renders incomplete prices and untrusted links safely", () => {
     expect(price("16.80", "EUR")).toBe("€16.80");
@@ -63,5 +71,24 @@ describe("catalogue presentation and URL state", () => {
     expect(catalogUrl("coffees")).toBe("/coffee");
     expect(catalogUrl("roasters", initial)).toContain("/roasters?q=coffee");
     expect(filtersFor("roasters")).toContain("hasCoffee");
+  });
+  it("stores only the filters and sort supported by each catalogue", () => {
+    persistFilters(
+      "coffees",
+      new URLSearchParams("country=US&roaster=1&q=floral&page=2&sort=nameDesc"),
+    );
+    persistFilters(
+      "roasters",
+      new URLSearchParams(
+        "country=CZ&hasCoffee=yes&roaster=ignored&sort=coffeeCount",
+      ),
+    );
+
+    expect(storedFilters("coffees").toString()).toBe(
+      "roaster=1&country=US&sort=nameDesc",
+    );
+    expect(storedFilters("roasters").toString()).toBe(
+      "country=CZ&hasCoffee=yes&sort=coffeeCount",
+    );
   });
 });

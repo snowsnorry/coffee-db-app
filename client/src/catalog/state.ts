@@ -1,5 +1,35 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import type { FilterKey, Kind } from "../api/catalog";
+const storageKey = (kind: Kind) => `coffee-db:filters:${kind}`;
+function persistedParams(kind: Kind, params: URLSearchParams) {
+  const persisted = new URLSearchParams();
+  for (const key of filtersFor(kind)) {
+    for (const value of params.getAll(key)) persisted.append(key, value);
+  }
+  const sort = params.get("sort");
+  if (sort) persisted.set("sort", sort);
+  return persisted;
+}
+export function storedFilters(kind: Kind) {
+  try {
+    return persistedParams(
+      kind,
+      new URLSearchParams(window.localStorage.getItem(storageKey(kind)) ?? ""),
+    );
+  } catch {
+    return new URLSearchParams();
+  }
+}
+export function persistFilters(kind: Kind, params: URLSearchParams) {
+  try {
+    window.localStorage.setItem(
+      storageKey(kind),
+      persistedParams(kind, params).toString(),
+    );
+  } catch {
+    // The catalogue remains usable when browser storage is unavailable.
+  }
+}
 const subscribe = (callback: () => void) => {
   window.addEventListener("popstate", callback);
   return () => window.removeEventListener("popstate", callback);
@@ -14,7 +44,16 @@ export function useCatalogLocation() {
     () => window.location.pathname + window.location.search,
   );
   const kind: Kind = href.startsWith("/roasters") ? "roasters" : "coffees";
-  const params = new URLSearchParams(href.split("?")[1]);
+  const urlParams = new URLSearchParams(href.split("?")[1]);
+  const restored = urlParams.size === 0;
+  const params = restored ? storedFilters(kind) : urlParams;
+  const query = params.toString();
+  useEffect(() => {
+    persistFilters(kind, params);
+    if (!restored || !query) return;
+    window.history.replaceState(null, "", catalogUrl(kind, params));
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, [kind, params, query, restored]);
   return { kind, params };
 }
 export function catalogUrl(kind: Kind, params = new URLSearchParams()) {
