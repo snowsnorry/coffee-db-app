@@ -153,7 +153,7 @@ describe("catalogue UI", () => {
 
     await user.click(screen.getByRole("link", { name: "Coffee" }));
     await waitFor(() =>
-      expect(window.location.search).toBe("?country=US&sort=nameDesc"),
+      expect(window.location.search).toBe("?country=US&q=floral&sort=nameDesc"),
     );
     expect(screen.getByRole("searchbox")).toHaveValue("floral");
     expect(screen.getByRole("combobox")).toHaveValue("nameDesc");
@@ -163,7 +163,9 @@ describe("catalogue UI", () => {
 
     await user.click(screen.getByRole("link", { name: "Roasters" }));
     await waitFor(() =>
-      expect(window.location.search).toBe("?hasCoffee=yes&sort=coffeeCount"),
+      expect(window.location.search).toBe(
+        "?hasCoffee=yes&q=alpha&sort=coffeeCount",
+      ),
     );
     expect(screen.getByRole("searchbox")).toHaveValue("alpha");
     expect(screen.getByRole("combobox")).toHaveValue("coffeeCount");
@@ -175,7 +177,7 @@ describe("catalogue UI", () => {
     window.history.replaceState(null, "", "/coffee");
     render(<App />);
     await waitFor(() =>
-      expect(window.location.search).toBe("?country=US&sort=nameDesc"),
+      expect(window.location.search).toBe("?country=US&q=floral&sort=nameDesc"),
     );
     expect(screen.getByRole("searchbox")).toHaveValue("floral");
     expect(screen.getByRole("combobox")).toHaveValue("nameDesc");

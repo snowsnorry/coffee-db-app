@@ -34,44 +34,32 @@ export function persistFilters(kind: Kind, params: URLSearchParams) {
 }
 const subscribe = (callback: () => void) => {
   window.addEventListener("popstate", callback);
-  window.addEventListener("storage", callback);
-  return () => {
-    window.removeEventListener("popstate", callback);
-    window.removeEventListener("storage", callback);
-  };
+  return () => window.removeEventListener("popstate", callback);
 };
-function locationSnapshot() {
-  const href = window.location.pathname + window.location.search;
-  const kind: Kind = href.startsWith("/roasters") ? "roasters" : "coffees";
-  return JSON.stringify([href, storedFilters(kind).get("q") ?? ""]);
-}
 export function navigate(url: string) {
   window.history.pushState(null, "", url);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 export function useCatalogLocation() {
-  const snapshot = useSyncExternalStore(subscribe, locationSnapshot);
-  const [href, storedQuery] = JSON.parse(snapshot) as [string, string];
+  const href = useSyncExternalStore(
+    subscribe,
+    () => window.location.pathname + window.location.search,
+  );
   const kind: Kind = href.startsWith("/roasters") ? "roasters" : "coffees";
   const urlParams = new URLSearchParams(href.split("?")[1]);
-  const stored = storedFilters(kind);
   const restored = urlParams.size === 0;
-  const params = restored ? stored : urlParams;
-  const query = urlParams.get("q") ?? storedQuery;
-  if (query) params.set("q", query);
-  const visibleUrl = catalogUrl(kind, params);
+  const params = restored ? storedFilters(kind) : urlParams;
+  const query = params.toString();
   useEffect(() => {
     persistFilters(kind, params);
-    if (href === visibleUrl) return;
-    window.history.replaceState(null, "", visibleUrl);
+    if (!restored || !query) return;
+    window.history.replaceState(null, "", catalogUrl(kind, params));
     window.dispatchEvent(new PopStateEvent("popstate"));
-  }, [href, kind, params, visibleUrl]);
+  }, [kind, params, query, restored]);
   return { kind, params };
 }
 export function catalogUrl(kind: Kind, params = new URLSearchParams()) {
-  const visibleParams = new URLSearchParams(params);
-  visibleParams.delete("q");
-  const query = visibleParams.toString();
+  const query = params.toString();
   return `${kind === "coffees" ? "/coffee" : "/roasters"}${query ? `?${query}` : ""}`;
 }
 export const filtersFor = (kind: Kind): FilterKey[] =>
