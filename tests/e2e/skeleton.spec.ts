@@ -185,3 +185,40 @@ test("roaster cards show counts in mobile actions and an empty state", async ({
     path: `/tmp/coffee-roasters-${isMobile ? "mobile" : "desktop"}.png`,
   });
 });
+
+test("mobile coffee catalogue uses an even square-edged three-column grid", async ({
+  page,
+}) => {
+  for (const width of [320, 390, 599]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/coffee");
+    const cards = page.locator(".coffee-card");
+    await expect(cards).toHaveCount(24);
+    const boxes = await cards.evaluateAll((items) =>
+      items.slice(0, 4).map((item) => {
+        const { x, y, width, right } = item.getBoundingClientRect();
+        return { x, y, width, right };
+      }),
+    );
+    expect(boxes[0]!.y).toBe(boxes[1]!.y);
+    expect(boxes[1]!.y).toBe(boxes[2]!.y);
+    expect(boxes[3]!.y).toBeGreaterThan(boxes[0]!.y);
+    expect(Math.abs(boxes[0]!.width - boxes[2]!.width)).toBeLessThan(1);
+    const grid = await page.locator(".coffee-grid").boundingBox();
+    expect(grid!.x).toBe(0);
+    expect(grid!.width).toBe(width);
+    await expect(cards.first().locator(".product-image")).toHaveCSS(
+      "border-radius",
+      "0px",
+    );
+    await expect(cards.first()).toHaveCSS("border-right-width", "1px");
+    await expect(cards.first()).toHaveCSS("border-bottom-width", "1px");
+    expect(
+      await page
+        .locator(".catalog-results")
+        .evaluate((el) => el.scrollWidth <= el.clientWidth),
+    ).toBe(true);
+    if (width === 390)
+      await page.screenshot({ path: "/tmp/coffee-three-column-mobile.png" });
+  }
+});
