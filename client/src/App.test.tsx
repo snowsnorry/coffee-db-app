@@ -126,12 +126,35 @@ describe("catalogue UI", () => {
     expect(
       within(screen.getByRole("table")).getByText("In-house"),
     ).toBeVisible();
-    await user.click(screen.getByRole("link", { name: "View coffees" }));
+    await user.click(screen.getByRole("link", { name: "View 30 coffees" }));
     await screen.findByRole("heading", { name: "Floral" });
     expect(window.location.search).toBe("?roaster=1");
     await user.click(screen.getByRole("link", { name: "Coffee DB" }));
     expect(window.location.search).toBe("");
     await user.click(screen.getByRole("link", { name: "Coffee" }));
+  });
+  it("keeps the website but offers no coffee navigation for an empty roaster", async () => {
+    window.history.replaceState(null, "", "/roasters");
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input);
+      const data = response(url);
+      return {
+        ok: true,
+        json: async () =>
+          url.startsWith("/api/roasters?")
+            ? { ...data, items: [{ ...roaster, coffeeCount: 0 }] }
+            : data,
+      } as Response;
+    });
+    render(<App />);
+    expect(await screen.findByText("No coffees listed")).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: /View.*coffees/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /alpha.test/ })).toHaveAttribute(
+      "href",
+      "https://alpha.test/",
+    );
   });
   it("keeps mobile drafts until Apply and discards them on close", async () => {
     const user = userEvent.setup();

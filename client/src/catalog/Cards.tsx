@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { ArrowSquareOutIcon, ImageBrokenIcon } from "@phosphor-icons/react";
+import {
+  ArrowSquareOutIcon,
+  CaretRightIcon,
+  ImageBrokenIcon,
+} from "@phosphor-icons/react";
 import type { Coffee, Roaster } from "../api/catalog";
 import { catalogUrl } from "./state";
 import { location, modelNames, number, price, safeUrl } from "./format";
@@ -113,26 +117,41 @@ export function RoasterTable({
                 </ExternalLink>
               </td>
               <td>
-                <a
-                  className="view-coffees"
-                  href={catalogUrl(
-                    "coffees",
-                    new URLSearchParams({ roaster: roaster.id }),
-                  )}
-                  onClick={(event) => {
-                    if (
-                      !event.ctrlKey &&
-                      !event.metaKey &&
-                      !event.shiftKey &&
-                      !event.altKey
-                    ) {
-                      event.preventDefault();
-                      onNavigate(event.currentTarget.href);
-                    }
-                  }}
-                >
-                  View coffees
-                </a>
+                {roaster.coffeeCount > 0 ? (
+                  <a
+                    className="view-coffees"
+                    href={catalogUrl(
+                      "coffees",
+                      new URLSearchParams({ roaster: roaster.id }),
+                    )}
+                    onClick={(event) => {
+                      if (
+                        !event.ctrlKey &&
+                        !event.metaKey &&
+                        !event.shiftKey &&
+                        !event.altKey
+                      ) {
+                        event.preventDefault();
+                        onNavigate(event.currentTarget.href);
+                      }
+                    }}
+                  >
+                    <span>
+                      View{" "}
+                      <span className="mobile-coffee-count">
+                        {number(roaster.coffeeCount)}
+                      </span>{" "}
+                      coffees
+                    </span>
+                    <CaretRightIcon
+                      className="mobile-coffee-arrow"
+                      size={18}
+                      aria-hidden="true"
+                    />
+                  </a>
+                ) : (
+                  <span className="no-coffees">No coffees listed</span>
+                )}
               </td>
             </tr>
           ))}

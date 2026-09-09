@@ -24,7 +24,7 @@ test("catalogue navigation, search, sorting and numbered pagination", async ({
     page.getByRole("heading", { name: "25 roasters" }),
   ).toBeVisible();
   await page
-    .getByRole("link", { name: "View coffees", exact: true })
+    .getByRole("link", { name: /View (30 )?coffees/, exact: true })
     .first()
     .click();
   await expect(page).toHaveURL(/roaster=1/);
@@ -149,4 +149,39 @@ test("selected filters remain usable after a facet update fails", async ({
   if (isMobile)
     await filters.getByRole("button", { name: "Apply filters" }).click();
   await expect(page.getByRole("heading", { name: "60 coffees" })).toBeVisible();
+});
+
+test("roaster cards show counts in mobile actions and an empty state", async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto("/roasters");
+  const rows = page.locator(".roaster-list tbody tr");
+  await expect(rows).toHaveCount(20);
+  const populated = rows.first();
+  const empty = rows.nth(2);
+  await expect(empty.getByText("No coffees listed")).toBeVisible();
+  await expect(empty.getByRole("link", { name: /View.*coffees/ })).toHaveCount(
+    0,
+  );
+  await expect(empty.locator(".website-link")).toBeVisible();
+  if (isMobile) {
+    await expect(
+      populated.getByRole("link", { name: "View 30 coffees" }),
+    ).toBeVisible();
+    await expect(populated.locator('[data-label="Coffees"]')).toBeHidden();
+    await expect(rows.nth(1).locator("th")).toHaveCSS(
+      "border-top-width",
+      "0px",
+    );
+    await expect(populated).toHaveCSS("border-radius", "12px");
+  } else {
+    await expect(populated.locator('[data-label="Coffees"]')).toBeVisible();
+    await expect(
+      populated.getByRole("link", { name: "View coffees", exact: true }),
+    ).toBeVisible();
+  }
+  await page.screenshot({
+    path: `/tmp/coffee-roasters-${isMobile ? "mobile" : "desktop"}.png`,
+  });
 });
