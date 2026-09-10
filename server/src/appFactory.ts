@@ -36,10 +36,8 @@ export function createApp(options: CreateAppOptions = {}) {
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "no-referrer",
       "X-Frame-Options": "DENY",
-      "Content-Security-Policy": "frame-ancestors 'none'",
-      // Observe resource restrictions before enforcing them on the deployed UI.
       // Emotion injects style elements; MUI also uses inline style attributes.
-      "Content-Security-Policy-Report-Only": [
+      "Content-Security-Policy": [
         "default-src 'self'",
         "script-src 'self'",
         "style-src 'self' 'unsafe-inline'",

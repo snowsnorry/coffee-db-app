@@ -82,10 +82,12 @@ function expectSecurityHeaders(headers: Record<string, string>, error = false) {
   expect(headers["referrer-policy"]).toBe("no-referrer");
   expect(headers["x-frame-options"]).toBe("DENY");
   // Express finalhandler applies its stricter CSP to its own error documents.
-  expect(headers["content-security-policy"]).toBe(
-    error ? "default-src 'none'" : "frame-ancestors 'none'",
-  );
-  const policy = headers["content-security-policy-report-only"];
+  const policy = headers["content-security-policy"];
+  expect(headers["content-security-policy-report-only"]).toBeUndefined();
+  if (error) {
+    expect(policy).toBe("default-src 'none'");
+    return;
+  }
   expect(policy).toContain("script-src 'self';");
   expect(policy).toContain("style-src 'self' 'unsafe-inline';");
   expect(policy).toContain("img-src 'self' http: https:;");
