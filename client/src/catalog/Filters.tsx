@@ -5,6 +5,10 @@ import { clearFilters, filtersFor, toggleFilter } from "./state";
 import { useFacet } from "./useFacet";
 
 const labels: Record<FilterKey, string> = {
+  origin: "Origin",
+  variety: "Variety",
+  roastFor: "Roast for",
+  decaf: "Decaf",
   roaster: "Roaster",
   country: "Country",
   state: "State",
@@ -13,6 +17,10 @@ const labels: Record<FilterKey, string> = {
   hasCoffee: "Has coffee",
 };
 const placeholders: Record<FilterKey, string> = {
+  origin: "Search origins",
+  variety: "Search varieties",
+  roastFor: "Search roast purpose",
+  decaf: "Search decaf",
   roaster: "Search roasters",
   country: "Search countries",
   state: "Search states",
@@ -36,6 +44,31 @@ function FilterOptions({
   selected: string[];
   onToggle: (value: string) => void;
 }) {
+  if (facet === "origin")
+    return (
+      <div className="origin-options">
+        {[
+          { title: "", prefix: "__empty__" },
+          { title: "Continents", prefix: "continent:" },
+          { title: "Countries", prefix: "country:" },
+        ].map((group) => {
+          const options = items.filter((item) =>
+            item.value.startsWith(group.prefix),
+          );
+          return options.length ? (
+            <div key={group.prefix}>
+              {group.title && <h4>{group.title}</h4>}
+              <FilterOptions
+                items={options}
+                facet="variety"
+                selected={selected}
+                onToggle={onToggle}
+              />
+            </div>
+          ) : null;
+        })}
+      </div>
+    );
   return (
     <div className="filter-options">
       {items.map((option) => (
@@ -45,7 +78,13 @@ function FilterOptions({
             checked={selected.includes(option.value)}
             onChange={() => onToggle(option.value)}
           />
-          <span>{facetLabel(facet, option)}</span>
+          <span
+            className={
+              option.value === "__empty__" ? "unspecified-option" : undefined
+            }
+          >
+            {facetLabel(facet, option)}
+          </span>
           <span className="facet-count">{number(option.count)}</span>
         </label>
       ))}
@@ -63,7 +102,7 @@ function FacetGroup({
   return (
     <section className="filter-group" aria-label={labels[facet]}>
       <h3>{labels[facet]}</h3>
-      {facet !== "model" && facet !== "hasCoffee" && (
+      {!["model", "hasCoffee", "decaf", "roastFor"].includes(facet) && (
         <label className="facet-search">
           <MagnifyingGlassIcon size={17} aria-hidden="true" />
           <input
@@ -127,15 +166,28 @@ export function Filters({ kind, params, onChange }: Props) {
           Clear all
         </button>
       </div>
-      <p className="filter-hint">Location of the roaster</p>
+      {kind === "roasters" && (
+        <p className="filter-hint">Location of the roaster</p>
+      )}
       {filtersFor(kind).map((facet) => (
-        <FacetGroup
-          key={`${facet}:${withoutFacet(base, facet)}`}
-          facet={facet}
-          kind={kind}
-          params={params}
-          onChange={onChange}
-        />
+        <div key={facet}>
+          {kind === "coffees" && facet === "roaster" && (
+            <h2 className="filter-section-title">Roaster location</h2>
+          )}
+          {facet === "origin" && (
+            <p className="filter-hint">
+              Countries or continents of the coffee. A continent includes its
+              countries.
+            </p>
+          )}
+          <FacetGroup
+            key={`${facet}:${withoutFacet(base, facet)}`}
+            facet={facet}
+            kind={kind}
+            params={params}
+            onChange={onChange}
+          />
+        </div>
       ))}
     </div>
   );

@@ -7,7 +7,7 @@ import {
 import type { Coffee, Roaster } from "../api/catalog";
 import { catalogUrl } from "./state";
 import { location, modelNames, number, price, safeUrl } from "./format";
-function ExternalLink({
+export function ExternalLink({
   url,
   children,
   className,
@@ -31,7 +31,7 @@ function ExternalLink({
     <span className="muted">Link unavailable</span>
   );
 }
-function ProductImage({ coffee }: { coffee: Coffee }) {
+export function ProductImage({ coffee }: { coffee: Coffee }) {
   const [failed, setFailed] = useState(false);
   const url = safeUrl(coffee.imageUrl);
   return (
@@ -54,11 +54,23 @@ function ProductImage({ coffee }: { coffee: Coffee }) {
     </div>
   );
 }
-export function CoffeeCards({ items }: { items: Coffee[] }) {
+export function CoffeeCards({
+  items,
+  onOpen,
+}: {
+  items: Coffee[];
+  onOpen: (coffee: Coffee) => void;
+}) {
   return (
     <div className="coffee-grid">
       {items.map((coffee) => (
         <article className="coffee-card" key={coffee.id}>
+          <button
+            className="coffee-card-open"
+            onClick={() => onOpen(coffee)}
+            aria-label={`View details for ${coffee.name}`}
+            aria-haspopup="dialog"
+          />
           <ProductImage coffee={coffee} />
           <h2>{coffee.name}</h2>
           <p>{coffee.roaster.name}</p>
@@ -68,7 +80,6 @@ export function CoffeeCards({ items }: { items: Coffee[] }) {
           >
             {price(coffee.priceAmount, coffee.priceCurrency)}
           </p>
-          <ExternalLink url={coffee.sourceUrl}>View source</ExternalLink>
         </article>
       ))}
     </div>

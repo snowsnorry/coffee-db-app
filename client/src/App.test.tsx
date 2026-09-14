@@ -30,6 +30,17 @@ const coffee = {
 };
 function response(url: string) {
   const parsed = new URL(url, "http://localhost");
+  if (/\/api\/coffees\/\d+$/.test(parsed.pathname))
+    return {
+      ...coffee,
+      description: "Jasmine and peach",
+      originCountryCodes: ["ET"],
+      originContinents: null,
+      varietyIds: [],
+      varieties: [],
+      roastFor: ["filter"],
+      decaf: false,
+    };
   if (parsed.pathname.endsWith("stats"))
     return { coffees: 30, roasters: 1, countries: 1, roastersWithCoffee: 1 };
   if (parsed.pathname.endsWith("facets")) {
@@ -83,10 +94,9 @@ describe("catalogue UI", () => {
       await screen.findByRole("heading", { name: "Floral" }),
     ).toBeVisible();
     expect(screen.getByText("€16.80")).toBeVisible();
-    expect(screen.getByRole("link", { name: /View source/ })).toHaveAttribute(
-      "rel",
-      "noopener noreferrer",
-    );
+    expect(
+      screen.queryByRole("link", { name: /View source/ }),
+    ).not.toBeInTheDocument();
     fireEvent.error(screen.getByRole("img", { name: "Floral" }));
     expect(screen.getByText("Image unavailable")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Go to page 2" }));

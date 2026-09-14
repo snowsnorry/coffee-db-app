@@ -42,9 +42,27 @@ CREATE TABLE IF NOT EXISTS coffee_products (
     OR (price_amount IS NOT NULL AND price_currency IS NOT NULL)
   )
 );
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS origin_country_codes JSONB;
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS origin_continents JSONB;
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS variety_ids JSONB;
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS roast_for JSONB;
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS decaf BOOLEAN;
 `;
 
 export const DATABASE_INDEXES = [
+  ...[
+    "origin_country_codes",
+    "origin_continents",
+    "variety_ids",
+    "roast_for",
+  ].map((column) => ({
+    name: `coffee_products_${column}_idx`,
+    sql: `CREATE INDEX CONCURRENTLY IF NOT EXISTS coffee_products_${column}_idx ON coffee_products USING gin (${column})`,
+  })),
+  {
+    name: "coffee_products_decaf_true_idx",
+    sql: "CREATE INDEX CONCURRENTLY IF NOT EXISTS coffee_products_decaf_true_idx ON coffee_products (decaf) WHERE decaf IS TRUE",
+  },
   {
     name: "coffee_products_roaster_id_idx",
     sql: "CREATE INDEX CONCURRENTLY IF NOT EXISTS coffee_products_roaster_id_idx ON coffee_products (roaster_id)",

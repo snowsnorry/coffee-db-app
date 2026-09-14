@@ -1,5 +1,7 @@
+import { attributeKeys } from "./attributes.js";
+import { attributeFacet } from "./attributeFacet.js";
 import type { Pool } from "pg";
-import { mapCoffee, mapRoaster, type Row } from "./mapping.js";
+import { mapCoffee, mapCoffeeDetail, mapRoaster, type Row } from "./mapping.js";
 import {
   buildWhere,
   COFFEE_COUNT,
@@ -66,6 +68,8 @@ async function facet(
   key: FilterKey,
   options: { search: string; offset: number },
 ) {
+  if (attributeKeys.includes(key))
+    return attributeFacet(db, query, key, options);
   const { search, offset } = options;
   const sql = buildWhere(kind, query, key);
   const { value, label } = facetSql(key);
@@ -103,6 +107,13 @@ async function facet(
 }
 export function createCatalogRepository(db: QueryDatabase): CatalogRepository {
   return {
+    async coffee(id) {
+      const result = await db.query(
+        `SELECT ${COLUMNS.coffees}, p.description, p.origin_country_codes, p.origin_continents, p.variety_ids, p.roast_for, p.decaf ${fromSql("coffees")} WHERE p.id = $1::bigint`,
+        [id],
+      );
+      return result.rows[0] ? mapCoffeeDetail(result.rows[0]) : null;
+    },
     coffees: (query) => list(db, "coffees", query, mapCoffee),
     roasters: (query) => list(db, "roasters", query, mapRoaster),
     facet: (kind, query, key, search, offset) =>

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@fontsource/source-sans-3/400.css";
+@import "@fontsource/source-sans-3/400-italic.css";
 @import "@fontsource/source-sans-3/500.css";
 @import "@fontsource/source-sans-3/600.css";
 @import "@fontsource/source-sans-3/700.css";
@@ -1100,4 +1101,161 @@ a:hover {
     justify-content: flex-start;
     margin-top: 0;
   }
+}
+
+.coffee-card {
+  position: relative;
+}
+.coffee-card-open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+}
+.coffee-card:has(.coffee-card-open:hover) h2 {
+  color: var(--accent);
+}
+.coffee-card-open:focus-visible {
+  outline-offset: 4px;
+}
+.filter-section-title {
+  font-size: 1.125rem;
+  margin: 24px 0 8px;
+}
+.origin-options h4 {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 16px 0 8px;
+  font-weight: 600;
+}
+.coffee-dialog .MuiDialog-paper {
+  width: 960px;
+  max-width: calc(100% - 64px);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  border-radius: 12px;
+}
+.coffee-dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.coffee-dialog-body {
+  overflow-y: auto;
+  padding: 24px 32px 32px;
+}
+.coffee-detail-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 32px;
+  align-items: center;
+}
+.coffee-detail-summary .product-image {
+  margin: 0;
+  height: 280px;
+  aspect-ratio: auto;
+}
+.coffee-detail-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.coffee-detail-title h2 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.coffee-detail-title .price {
+  margin: 20px 0 12px;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+.coffee-attributes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 32px;
+  margin: 28px 0 0;
+  padding: 24px 0;
+  border-block: 1px solid var(--border);
+}
+.coffee-attributes dt {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+.coffee-attributes dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.coffee-description {
+  margin-top: 28px;
+}
+.coffee-description h3 {
+  margin-bottom: 12px;
+  font-size: 1.125rem;
+}
+.coffee-description p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 72ch;
+  line-height: 1.6;
+}
+.detail-status {
+  padding: 28px 0;
+}
+@media (max-width: 899px) {
+  .coffee-dialog .MuiDialog-paper {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    margin: 0;
+  }
+}
+@media (max-width: 599px) {
+  .coffee-dialog-heading {
+    padding: 10px 16px;
+  }
+  .coffee-dialog-body {
+    padding: 20px 16px 28px;
+  }
+  .coffee-detail-summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .coffee-detail-summary .product-image {
+    height: 220px;
+  }
+  .coffee-detail-title h2 {
+    font-size: 1.5rem;
+  }
+  .coffee-attributes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.decaf-tag {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-inline-start: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--olive);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.unspecified-option {
+  font-style: italic;
 }

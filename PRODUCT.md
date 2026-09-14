@@ -12,7 +12,7 @@ The primary users are coffee-industry specialists and serious coffee enthusiasts
 
 ## Product Purpose
 
-Coffee DB makes a prepared global dataset of coffee roasters and roasted-coffee products explorable through a web interface and read-only API. The current product supports broad discovery across the catalogue. Its planned direction adds richer records for individual coffee products, statistics across selected slices of the data and aggregate market statistics.
+Coffee DB makes a prepared global dataset of coffee roasters and roasted-coffee products explorable through a web interface and read-only API. The current product supports broad discovery across the catalogue. Product dialogs show descriptions and coffee attributes. Its planned direction adds statistics across selected slices of the data and aggregate market statistics.
 
 Success means users can efficiently find, compare and understand roasters and products across the dataset, with clear limits around the freshness and completeness of source data.
 
@@ -31,15 +31,16 @@ The source-of-truth handoff for PostgreSQL tables, field semantics and data-qual
 The current milestone provides:
 
 - English coffee and roaster catalogues backed by PostgreSQL.
-- Search, faceted location and roaster filters, sorting and numbered pagination.
+- Search, faceted roaster/location filters, combined country/continent origin, variety, roast-purpose and decaf filters, sorting and numbered pagination.
+- Clickable coffee cards opening accessible product dialogs with photos, source links, descriptions and attributes.
 - Shareable URL state and direct transitions from a roaster to its coffee catalogue.
 - Desktop layouts and a mobile fullscreen filter dialog with explicit Apply and Cancel behavior.
 - Real product photographs, graceful unavailable-image states and historical prices linking to source shops.
 - Unit and API tests, isolated PostgreSQL integration, deterministic browser tests and opt-in visual checks.
 
-Internal detail pages, translation, accounts, purchasing, data ingestion and deployment remain outside the current milestone. Richer product records and market statistics are planned capabilities rather than current behavior. Application reads and additive indexes are verified on an isolated Neon development branch; production rollout is separate.
+Standalone detail pages, translation, accounts, purchasing, data ingestion and deployment remain outside the current milestone. Market statistics remain a planned capability. Application reads and additive indexes are verified on an isolated Neon development branch; production rollout is separate.
 
-A roaster is identified by an internal ID and unique canonical domain. Each coffee belongs to exactly one roaster. Geography refers to roaster location. External descriptions, links, photographs and prices are imperfect source data. The interface does not guarantee product availability, translate products or compare value across currencies and package sizes.
+A roaster is identified by an internal ID and unique canonical domain. Each coffee belongs to exactly one roaster. Roaster geography is distinct from bean origin. Origin filtering combines explicit continents with country-to-continent mappings without altering source attributes. The decaf filter treats missing values as not decaf. External descriptions, links, photographs and prices are imperfect source data. The interface does not guarantee product availability, translate products or compare value across currencies and package sizes.
 
 ## Brand Commitments
 

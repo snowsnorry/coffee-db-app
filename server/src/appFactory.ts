@@ -61,6 +61,7 @@ export function createApp(options: CreateAppOptions = {}) {
   app.use("/api", (req, res, next) => {
     if (
       /^\/(coffees|roasters)(\/facets)?\/?$/.test(req.path) ||
+      /^\/coffees\/[^/]+\/?$/.test(req.path) ||
       req.path === "/catalog/stats"
     )
       return catalogue(req, res, next);

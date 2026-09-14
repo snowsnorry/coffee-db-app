@@ -1,6 +1,15 @@
 export type Kind = "coffees" | "roasters";
 export type FilterKey =
-  "roaster" | "country" | "state" | "city" | "model" | "hasCoffee";
+  | "roaster"
+  | "country"
+  | "state"
+  | "city"
+  | "model"
+  | "hasCoffee"
+  | "origin"
+  | "variety"
+  | "roastFor"
+  | "decaf";
 export type RoasterSummary = {
   id: string;
   name: string;
@@ -16,6 +25,15 @@ export type Coffee = {
   priceCurrency: string | null;
   sourceUrl: string | null;
   roaster: RoasterSummary;
+};
+export type CoffeeDetail = Coffee & {
+  description: string;
+  originCountryCodes: string[] | null;
+  originContinents: string[] | null;
+  varietyIds: string[] | null;
+  varieties: { id: string; label: string }[];
+  roastFor: string[] | null;
+  decaf: boolean;
 };
 export type Roaster = RoasterSummary & {
   domain: string;
@@ -45,9 +63,11 @@ export async function fetchJson<T>(
   const response = await fetch(path, { signal });
   if (!response.ok)
     throw new Error(
-      response.status === 400
-        ? "These filters could not be read. Clear them and try again."
-        : "The catalogue is unavailable right now. Please try again.",
+      response.status === 404
+        ? "This coffee is no longer available in the catalogue."
+        : response.status === 400
+          ? "These filters could not be read. Clear them and try again."
+          : "The catalogue is unavailable right now. Please try again.",
     );
   return response.json() as Promise<T>;
 }

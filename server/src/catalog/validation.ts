@@ -1,3 +1,4 @@
+import { originCountries } from "./originCountries.js";
 import {
   FILTERS,
   type CatalogKind,
@@ -12,7 +13,16 @@ const fail = (): never => {
 const MODELS = ["IN_HOUSE", "SHARED_FACILITY", "CONTRACT", "HYBRID", "UNKNOWN"];
 const applicableFilters = (kind: CatalogKind): FilterKey[] =>
   kind === "coffees"
-    ? ["roaster", "country", "state", "city"]
+    ? [
+        "origin",
+        "variety",
+        "roastFor",
+        "decaf",
+        "roaster",
+        "country",
+        "state",
+        "city",
+      ]
     : ["country", "state", "city", "model", "hasCoffee"];
 export function textParameter(params: URLSearchParams, key: string, max = 200) {
   const values = params.getAll(key);
@@ -38,7 +48,9 @@ export function integerParameter(
     return fail();
   return number;
 }
-function validFilter(key: FilterKey, value: string) {
+export function validFilter(key: FilterKey, value: string) {
+  if (["origin", "variety", "roastFor", "decaf"].includes(key))
+    return validAttribute(key, value);
   if (key === "roaster")
     return (
       /^[1-9]\d{0,18}$/.test(value) && BigInt(value) <= 9223372036854775807n
@@ -109,4 +121,21 @@ export function parseFacet(
   const facet = textParameter(params, "facet") as FilterKey;
   if (!applicableFilters(kind).includes(facet)) fail();
   return facet;
+}
+
+function validAttribute(key: FilterKey, value: string) {
+  if (["origin", "variety", "roastFor"].includes(key) && value === "__empty__")
+    return true;
+  if (key === "origin")
+    return (
+      /^country:[A-Z]{2}$/.test(value) ||
+      (value.startsWith("continent:") &&
+        Object.hasOwn(originCountries, value.slice(10)))
+    );
+  if (key === "variety")
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*-[a-f0-9]{8}$/.test(value);
+  if (key === "roastFor") return ["espresso", "filter", "omni"].includes(value);
+  if (key === "decaf") return ["yes", "no"].includes(value);
+
+  return false;
 }

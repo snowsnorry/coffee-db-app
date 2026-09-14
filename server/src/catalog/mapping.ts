@@ -1,4 +1,5 @@
-import type { Coffee, Roaster, RoasterSummary } from "./types.js";
+import { varietyNames } from "./varieties.js";
+import type { CoffeeDetail, Coffee, Roaster, RoasterSummary } from "./types.js";
 export type Row = Record<string, unknown>;
 export function safeUrl(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -37,5 +38,26 @@ export function mapRoaster(row: Row): Roaster {
     websiteUrl: safeUrl(row.website_url),
     roastingModel: String(row.roasting_model),
     coffeeCount: Number(row.coffee_count),
+  };
+}
+
+export function mapCoffeeDetail(row: Row): CoffeeDetail {
+  const array = (value: unknown): string[] | null =>
+    Array.isArray(value)
+      ? [...new Set(value.filter((v): v is string => typeof v === "string"))]
+      : null;
+  const varietyIds = array(row.variety_ids);
+  return {
+    ...mapCoffee(row),
+    description: String(row.description ?? ""),
+    originCountryCodes: array(row.origin_country_codes),
+    originContinents: array(row.origin_continents),
+    varietyIds,
+    varieties: (varietyIds ?? []).map((id) => ({
+      id,
+      label: varietyNames[id] ?? id,
+    })),
+    roastFor: array(row.roast_for),
+    decaf: row.decaf === true,
   };
 }

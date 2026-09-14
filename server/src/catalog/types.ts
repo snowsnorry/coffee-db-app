@@ -6,6 +6,10 @@ export const FILTERS = [
   "city",
   "model",
   "hasCoffee",
+  "origin",
+  "variety",
+  "roastFor",
+  "decaf",
 ] as const;
 export type FilterKey = (typeof FILTERS)[number];
 export type CatalogQuery = {
@@ -31,6 +35,15 @@ export type Coffee = {
   sourceUrl: string | null;
   roaster: RoasterSummary;
 };
+export type CoffeeDetail = Coffee & {
+  description: string;
+  originCountryCodes: string[] | null;
+  originContinents: string[] | null;
+  varietyIds: string[] | null;
+  varieties: { id: string; label: string }[];
+  roastFor: string[] | null;
+  decaf: boolean;
+};
 export type Roaster = RoasterSummary & {
   domain: string;
   websiteUrl: string | null;
@@ -53,6 +66,7 @@ type Stats = {
   roastersWithCoffee: number;
 };
 export interface CatalogRepository {
+  coffee(id: string): Promise<CoffeeDetail | null>;
   coffees(query: CatalogQuery): Promise<CatalogPage<Coffee>>;
   roasters(query: CatalogQuery): Promise<CatalogPage<Roaster>>;
   facet(

@@ -64,7 +64,16 @@ export function catalogUrl(kind: Kind, params = new URLSearchParams()) {
 }
 export const filtersFor = (kind: Kind): FilterKey[] =>
   kind === "coffees"
-    ? ["roaster", "country", "state", "city"]
+    ? [
+        "origin",
+        "variety",
+        "roastFor",
+        "decaf",
+        "roaster",
+        "country",
+        "state",
+        "city",
+      ]
     : ["country", "state", "city", "model", "hasCoffee"];
 export function toggleFilter(
   params: URLSearchParams,

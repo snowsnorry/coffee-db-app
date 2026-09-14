@@ -6,6 +6,7 @@ import {
   parseFacet,
   parseQuery,
   textParameter,
+  validFilter,
 } from "./validation.js";
 
 export function catalogRoutes(repository?: CatalogRepository) {
@@ -38,6 +39,15 @@ export function catalogRoutes(repository?: CatalogRepository) {
       );
     });
   }
+  router.get("/coffees/:id", async (req, res) => {
+    if (!validFilter("roaster", req.params.id)) throw new InvalidQuery();
+    const coffee = await repository!.coffee(req.params.id);
+    if (!coffee) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    res.json(coffee);
+  });
   router.use(
     (
       error: unknown,

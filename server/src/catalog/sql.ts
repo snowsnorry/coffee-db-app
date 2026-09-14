@@ -1,3 +1,4 @@
+import { attributeKeys, attributePredicate } from "./attributes.js";
 import type { CatalogKind, CatalogQuery, FilterKey } from "./types.js";
 
 const ROASTER_SEARCH =
@@ -7,7 +8,7 @@ const CITY_VALUE =
   "json_build_array(r.country_code::text, coalesce(r.state_code::text, ''), r.city)::text";
 export const COFFEE_COUNT =
   "(SELECT count(*)::int FROM coffee_products cp WHERE cp.roaster_id = r.id)";
-const COLUMNS: Record<FilterKey, string> = {
+const COLUMNS: Partial<Record<FilterKey, string>> = {
   roaster: "r.id::text",
   country: "r.country_code",
   state: "r.state_code",
@@ -42,6 +43,10 @@ export function buildWhere(
   }
   for (const [key, selected] of Object.entries(query.filters)) {
     if (key === excluded || !selected.length) continue;
+    if (attributeKeys.includes(key)) {
+      terms.push(attributePredicate(key as FilterKey, selected, bind));
+      continue;
+    }
     // PostgreSQL JSON spacing is normalized before comparing composite city identities.
     const column =
       key === "city" ? `(${CITY_VALUE})::jsonb` : COLUMNS[key as FilterKey];

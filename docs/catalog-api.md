@@ -37,3 +37,54 @@ Counts apply the search and other filter groups but exclude the requested group.
 Malformed known parameters: HTTP 400 `{ "error": "invalid_query" }`. Unavailable database: HTTP 503 `{ "error": "catalog_unavailable" }`. Unknown API route: HTTP 404 `{ "error": "not_found" }`. Internal database errors and connection details are never returned to the browser.
 
 The server uses a bounded connection pool, a 10-second connection timeout and a 15-second per-statement timeout. List count and page queries are separate reads. Pagination intentionally uses OFFSET to support arbitrary numbered-page navigation; it does not promise an immutable snapshot during concurrent imports.
+
+## Coffee attributes and details
+
+`GET /api/coffees/:id` accepts a positive BIGINT string. It returns the Coffee
+summary plus `description`, `originCountryCodes: string[] | null`,
+`originContinents: string[] | null`, `varietyIds: string[] | null`,
+`varieties: { id, label }[]`, `roastFor: string[] | null`, and `decaf: boolean`.
+The boolean is true only when the stored value is true. A missing coffee returns
+404 `{ "error": "not_found" }`; malformed IDs return 400. Details are fetched on
+opening the modal, independently of the list. Descriptions are displayed as plain
+text, preserving line breaks. Source links appear in the dialog only.
+The dialog combines stored countries and continents in one Origin attribute;
+true decaf appears as a tag next to the title, with no separate decaf attribute.
+
+Additional repeated coffee-only filter keys:
+
+- `origin`: `country:ET`, `continent:africa`, or `__empty__`.
+- `variety`: canonical IDs such as `bourbon-127296f3`, or `__empty__`.
+- `roastFor`: `espresso`, `filter`, `omni`, or `__empty__`. Omni is independent.
+- `decaf`: `yes` (stored true), `no` (stored false or null); no empty option.
+
+Origin is one OR group across countries and continents. Continents match both
+explicit `origin_continents` and countries assigned by the bundled UN M49
+snapshot. North America includes Northern America, Central America and the
+Caribbean. Americas includes both American continents; a record with only the
+broad `americas` value does not match a narrower American continent or country.
+Other groups combine with Origin through AND. Original attribute arrays in the
+detail response are never replaced with inferred geography.
+
+`__empty__` means SQL NULL, JSON null, or an empty array. For Origin both arrays
+must be empty. It can be combined with ordinary values through OR. This sentinel
+is not supported by the existing roaster/location filters. Unknown future variety
+IDs retain their exact ID as the display label. The 900-entry canonical v3
+snapshot originates from `coffee-db/data/coffee-varieties/v3/dictionary.json`;
+only canonical IDs and labels are bundled, not aliases or extraction/review data.
+
+New facets use the same response shape and exclude their whole own filter group.
+Each product is counted once per option, including blends and repeated values.
+Origin returns up to 300 options per batch; other new facets return 20. Search
+matches display labels before pagination. Selected values are retained on the
+first batch with a zero count when necessary. The label “Not specified” is displayed
+in italics in filters and is retained in the first
+unsearched batch even at zero count; decaf supplies both choices. The app groups
+origin options under Continents and Countries without automatically selecting
+countries when a continent is selected. Browser URL and local storage preserve
+new filters; modal state is transient.
+
+The schema initializer adds missing attribute columns idempotently and ensures
+GIN indexes on all four JSONB columns plus the partial true-decaf index. It does
+not rewrite imported attribute values. Integration tests run in an isolated
+schema on a development database; do not point them at production.

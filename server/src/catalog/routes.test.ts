@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../appFactory.js";
 import type { CatalogRepository } from "./types.js";
 const createRepository = (): CatalogRepository => ({
+  coffee: vi.fn().mockResolvedValue(null),
   coffees: vi.fn().mockResolvedValue({
     items: [],
     total: 0,
@@ -38,6 +39,29 @@ describe("catalogue HTTP API", () => {
       "",
       20,
     );
+  });
+  it("serves details and validates bigint IDs", async () => {
+    const catalog = createRepository();
+    const app = createApp({ catalog });
+    expect((await request(app).get("/api/coffees/1")).status).toBe(404);
+    expect((await request(app).get("/api/coffees/0")).status).toBe(400);
+    expect(
+      (await request(app).get("/api/coffees/9223372036854775808")).status,
+    ).toBe(400);
+    vi.mocked(catalog.coffee).mockResolvedValue({
+      id: "9007199254740993",
+      description: "Text",
+    } as Awaited<ReturnType<CatalogRepository["coffee"]>>);
+    expect(
+      (await request(app).get("/api/coffees/9007199254740993")).body,
+    ).toMatchObject({ description: "Text" });
+    expect(
+      (await request(app).get("/api/coffees/facets?facet=origin")).status,
+    ).toBe(200);
+    vi.mocked(catalog.coffee).mockRejectedValue(new Error("secret"));
+    expect((await request(app).get("/api/coffees/1")).body).toEqual({
+      error: "catalog_unavailable",
+    });
   });
   it("returns safe JSON errors", async () => {
     const catalog = createRepository();

@@ -42,13 +42,20 @@ export function useFacet(
       ? matching
       : matching.filter(
           (item, i) =>
-            i < (facet === "roaster" ? 8 : 5) || selected.includes(item.value),
+            (facet === "origin"
+              ? item.value.startsWith("continent:") ||
+                matching
+                  .filter((x) => x.value.startsWith("country:"))
+                  .indexOf(item) < 5
+              : i < (facet === "roaster" ? 8 : 5)) ||
+            item.value === "__empty__" ||
+            selected.includes(item.value),
         );
   const loadMore = () => {
     setExpanded(true);
     if (expanded && resource.data?.hasMore) {
       setPrevious(options);
-      setOffset((value) => value + 20);
+      setOffset((value) => value + (facet === "origin" ? 300 : 20));
     }
   };
   const setSearch = (value: string) => {

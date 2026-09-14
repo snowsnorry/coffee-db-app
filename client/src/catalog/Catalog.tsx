@@ -3,6 +3,7 @@ import Dialog from "@mui/material/Dialog";
 import Pagination from "@mui/material/Pagination";
 import { XIcon, CoffeeBeanIcon } from "@phosphor-icons/react";
 import type { CatalogPage, Coffee, Kind, Roaster, Stats } from "../api/catalog";
+import { CoffeeDialog } from "./CoffeeDialog";
 import { CoffeeCards, RoasterTable } from "./Cards";
 import { Filters } from "./Filters";
 import { number } from "./format";
@@ -52,10 +53,12 @@ function Results({
   kind,
   resource,
   onClear,
+  onOpen,
 }: {
   kind: Kind;
   resource: ReturnType<typeof useResource<CatalogPage>>;
   onClear: () => void;
+  onOpen: (coffee: Coffee) => void;
 }) {
   if (resource.loading)
     return (
@@ -90,7 +93,7 @@ function Results({
       </div>
     );
   return kind === "coffees" ? (
-    <CoffeeCards items={data.items as Coffee[]} />
+    <CoffeeCards items={data.items as Coffee[]} onOpen={onOpen} />
   ) : (
     <RoasterTable items={data.items as Roaster[]} onNavigate={navigate} />
   );
@@ -181,6 +184,7 @@ function MobileFilters({
 }
 export default function Catalog() {
   const { kind, params } = useCatalogLocation();
+  const [selectedCoffee, setSelectedCoffee] = useState<Coffee | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const resource = useResource<CatalogPage>(`/api/${kind}?${params}`);
   const stats = useResource<Stats>("/api/catalog/stats");
@@ -231,6 +235,7 @@ export default function Catalog() {
           >
             <Results
               kind={kind}
+              onOpen={setSelectedCoffee}
               resource={resource}
               onClear={() => change(new URLSearchParams())}
             />
@@ -238,6 +243,13 @@ export default function Catalog() {
           <CatalogFooter kind={kind} data={resource.data} onPage={page} />
         </main>
       </div>
+      {selectedCoffee && (
+        <CoffeeDialog
+          key={selectedCoffee.id}
+          coffee={selectedCoffee}
+          onClose={() => setSelectedCoffee(null)}
+        />
+      )}
       {filtersOpen && (
         <MobileFilters
           key={kind}

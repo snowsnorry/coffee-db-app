@@ -38,6 +38,12 @@ test("catalogue SQL against an isolated PostgreSQL fixture schema", async () => 
         (2, repeat('b', 64), 1, 'Floral', 'Chocolate', NULL, NULL, NULL, 'https://alpha.test/other'),
         (3, repeat('c', 64), 2, 'Bright', 'Floral orange', NULL, 20, 'USD', 'https://beta.test/bright');
     `);
+    await client.query(
+      `UPDATE coffee_products SET origin_country_codes='["ET","ET"]', origin_continents='["africa"]', variety_ids='["bourbon-127296f3","bourbon-127296f3"]', roast_for='["filter","espresso"]', decaf=true WHERE id=9007199254740993`,
+    );
+    await client.query(
+      `UPDATE coffee_products SET origin_country_codes='["BR"]', origin_continents='["africa","americas"]', variety_ids='[]', roast_for='["omni"]', decaf=false WHERE id=2`,
+    );
     const indexes = await client.query<{ indexname: string }>(
       `SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() AND indexname LIKE '%_catalog_%' ORDER BY indexname`,
     );
@@ -47,6 +53,78 @@ test("catalogue SQL against an isolated PostgreSQL fixture schema", async () => 
     );
     const query = (raw: string, kind: "coffees" | "roasters" = "coffees") =>
       parseQuery(new URLSearchParams(raw), kind);
+    assert.equal(
+      (await repo.coffees(query("origin=continent:africa"))).total,
+      2,
+    );
+    assert.equal(
+      (await repo.coffees(query("origin=continent:africa&origin=country:BR")))
+        .total,
+      2,
+    );
+    assert.equal(
+      (await repo.coffees(query("origin=continent:americas"))).total,
+      1,
+    );
+    assert.equal(
+      (await repo.coffees(query("origin=continent:north_america"))).total,
+      0,
+    );
+    assert.equal((await repo.coffees(query("origin=__empty__"))).total, 1);
+    assert.equal(
+      (await repo.coffees(query("origin=__empty__&origin=country:ET"))).total,
+      2,
+    );
+    assert.equal((await repo.coffees(query("variety=__empty__"))).total, 2);
+    assert.equal(
+      (await repo.coffees(query("variety=bourbon-127296f3&variety=__empty__")))
+        .total,
+      3,
+    );
+    assert.equal(
+      (await repo.coffees(query("roastFor=filter&decaf=yes"))).total,
+      1,
+    );
+    assert.equal(
+      (await repo.coffees(query("roastFor=filter&decaf=no"))).total,
+      0,
+    );
+    assert.equal((await repo.coffees(query("decaf=no"))).total, 2);
+    assert.equal((await repo.coffees(query("decaf=no&decaf=yes"))).total, 3);
+    assert.equal((await repo.coffees(query("roastFor=espresso"))).total, 1);
+    assert.equal(
+      (await repo.coffee("9007199254740993"))?.varieties[0]?.label,
+      "Bourbon",
+    );
+    assert.equal(await repo.coffee("999"), null);
+    for (const key of ["origin", "variety", "roastFor", "decaf"] as const) {
+      const options = await repo.facet("coffees", query(), key, "", 0);
+      for (const option of options.items)
+        assert.equal(
+          (
+            await repo.coffees(
+              query(new URLSearchParams({ [key]: option.value }).toString()),
+            )
+          ).total,
+          option.count,
+          `${key}:${option.value}`,
+        );
+    }
+    const varieties = await repo.facet(
+      "coffees",
+      query("q=absent&variety=bourbon-127296f3"),
+      "variety",
+      "no match",
+      0,
+    );
+    assert.deepEqual(varieties.items, [
+      { value: "bourbon-127296f3", label: "Bourbon", count: 0 },
+    ]);
+    assert.equal(
+      (await repo.facet("coffees", query(), "variety", "Bourbon", 0)).items[0]
+        ?.count,
+      1,
+    );
     const first = await repo.coffees(query("pageSize=1"));
     const second = await repo.coffees(query("pageSize=1&page=2"));
     assert.notEqual(first.items[0]?.id, second.items[0]?.id);
