@@ -43,7 +43,8 @@ The server uses a bounded connection pool, a 10-second connection timeout and a 
 `GET /api/coffees/:id` accepts a positive BIGINT string. It returns the Coffee
 summary plus `description`, `originCountryCodes: string[] | null`,
 `originContinents: string[] | null`, `varietyIds: string[] | null`,
-`varieties: { id, label }[]`, `roastFor: string[] | null`, and `decaf: boolean`.
+`varietyDictionaryVersion: string | null`, `varietyUnresolved: string[] | null`,
+`varieties: { id, label, kind: string | null }[]`, `roastFor: string[] | null`, and `decaf: boolean`.
 The boolean is true only when the stored value is true. A missing coffee returns
 404 `{ "error": "not_found" }`; malformed IDs return 400. Details are fetched on
 opening the modal, independently of the list. Descriptions are displayed as plain
@@ -54,7 +55,7 @@ true decaf appears as a tag next to the title, with no separate decaf attribute.
 Additional repeated coffee-only filter keys:
 
 - `origin`: `country:ET`, `continent:africa`, or `__empty__`.
-- `variety`: canonical IDs such as `bourbon-127296f3`, or `__empty__`.
+- `variety`: version/ID pairs such as `coffee_variety_dictionary_v6:bourbon-127296f3`, or `__empty__`.
 - `roastFor`: `espresso`, `filter`, `omni`, or `__empty__`. Omni is independent.
 - `decaf`: `yes` (stored true), `no` (stored false or null); no empty option.
 
@@ -68,10 +69,21 @@ detail response are never replaced with inferred geography.
 
 `__empty__` means SQL NULL, JSON null, or an empty array. For Origin both arrays
 must be empty. It can be combined with ordinary values through OR. This sentinel
-is not supported by the existing roaster/location filters. Unknown future variety
-IDs retain their exact ID as the display label. The 900-entry canonical v3
-snapshot originates from `coffee-db/data/coffee-varieties/v3/dictionary.json`;
-only canonical IDs and labels are bundled, not aliases or extraction/review data.
+is not supported by the existing roaster/location filters. Variety labels and kinds come from `coffee_varieties`, matched on both
+`dictionary_version` and the product's `variety_dictionary_version` plus ID.
+The backend reads the required versions on each request, so newly published
+versions are available without restarting or replacing a bundled file. No
+latest-version substitution is performed. Missing entries are logged and shown
+as “Name unavailable”, with null kind. Unresolved source names appear separately;
+`variety_raw` is never appended or re-normalized. The full dictionary document
+and aliases are not sent to the browser.
+
+Variety facet values encode `version:id`; an empty version prefix represents a
+product with a missing version. Filtering checks both components, and options
+from different versions remain separate even when labels match. Legacy unversioned
+variety URLs return 400 and must be cleared/reselected. The empty option refers
+to canonical IDs only; unresolved names do not become canonical filter values.
+Live product counts are used, never historical dictionary statistics.
 
 New facets use the same response shape and exclude their whole own filter group.
 Each product is counted once per option, including blends and repeated values.

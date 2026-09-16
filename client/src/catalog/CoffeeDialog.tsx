@@ -32,6 +32,9 @@ function Details({ coffee }: { coffee: CoffeeDetail }) {
       ].join(", "),
     ],
     ["Variety", coffee.varieties.map((item) => item.label).join(", ")],
+    ...(coffee.varietyUnresolved?.length
+      ? [["Unresolved variety", coffee.varietyUnresolved.join(", ")]]
+      : []),
     [
       "Roast for",
       coffee.roastFor?.map((value) => roastNames[value] ?? value).join(", "),

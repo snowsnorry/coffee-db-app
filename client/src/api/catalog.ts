@@ -31,7 +31,9 @@ export type CoffeeDetail = Coffee & {
   originCountryCodes: string[] | null;
   originContinents: string[] | null;
   varietyIds: string[] | null;
-  varieties: { id: string; label: string }[];
+  varietyDictionaryVersion: string | null;
+  varietyUnresolved: string[] | null;
+  varieties: { id: string; label: string; kind: string | null }[];
   roastFor: string[] | null;
   decaf: boolean;
 };

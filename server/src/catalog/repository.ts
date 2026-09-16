@@ -1,3 +1,4 @@
+import { loadVarieties, varietyKey } from "./varieties.js";
 import { attributeKeys } from "./attributes.js";
 import { attributeFacet } from "./attributeFacet.js";
 import type { Pool } from "pg";
@@ -109,10 +110,17 @@ export function createCatalogRepository(db: QueryDatabase): CatalogRepository {
   return {
     async coffee(id) {
       const result = await db.query(
-        `SELECT ${COLUMNS.coffees}, p.description, p.origin_country_codes, p.origin_continents, p.variety_ids, p.roast_for, p.decaf ${fromSql("coffees")} WHERE p.id = $1::bigint`,
+        `SELECT ${COLUMNS.coffees}, p.description, p.origin_country_codes, p.origin_continents, p.variety_ids, p.variety_dictionary_version, p.variety_unresolved, p.roast_for, p.decaf ${fromSql("coffees")} WHERE p.id = $1::bigint`,
         [id],
       );
-      return result.rows[0] ? mapCoffeeDetail(result.rows[0]) : null;
+      const row = result.rows[0];
+      if (!row) return null;
+      const keys = Array.isArray(row.variety_ids)
+        ? row.variety_ids
+            .filter((id: unknown) => typeof id === "string")
+            .map((id: string) => varietyKey(row.variety_dictionary_version, id))
+        : [];
+      return mapCoffeeDetail(row, await loadVarieties(db, keys));
     },
     coffees: (query) => list(db, "coffees", query, mapCoffee),
     roasters: (query) => list(db, "roasters", query, mapRoaster),

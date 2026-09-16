@@ -36,6 +36,8 @@ function response(url: string) {
       description: "Jasmine and peach",
       originCountryCodes: ["ET"],
       originContinents: null,
+      varietyDictionaryVersion: "coffee_variety_dictionary_v6",
+      varietyUnresolved: null,
       varietyIds: [],
       varieties: [],
       roastFor: ["filter"],

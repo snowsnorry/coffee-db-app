@@ -21,8 +21,12 @@ const coffee: CoffeeDetail = {
   description: "Peach\n<script>alert(1)</script>",
   originCountryCodes: ["ET"],
   originContinents: ["africa"],
+  varietyDictionaryVersion: "coffee_variety_dictionary_v6",
+  varietyUnresolved: null,
   varietyIds: ["bourbon-127296f3"],
-  varieties: [{ id: "bourbon-127296f3", label: "Bourbon" }],
+  varieties: [
+    { id: "bourbon-127296f3", label: "Bourbon", kind: "variety_label" },
+  ],
   roastFor: ["filter"],
   decaf: false,
 };
@@ -135,4 +139,22 @@ it("aborts a pending details request on unmount", async () => {
   );
   view.unmount();
   expect(signal?.aborted).toBe(true);
+});
+
+it("shows unresolved source names separately from missing canonical labels", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...coffee,
+        varietyUnresolved: ["Local selection"],
+        varieties: [{ id: "missing", label: "Name unavailable", kind: null }],
+      }),
+    }),
+  );
+  render(<CoffeeDialog coffee={coffee} onClose={() => {}} />);
+  expect(await screen.findByText("Name unavailable")).toBeVisible();
+  expect(screen.getByText("Unresolved variety")).toBeVisible();
+  expect(screen.getByText("Local selection")).toBeVisible();
 });

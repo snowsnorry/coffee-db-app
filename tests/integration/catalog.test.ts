@@ -38,6 +38,9 @@ test("catalogue SQL against an isolated PostgreSQL fixture schema", async () => 
         (2, repeat('b', 64), 1, 'Floral', 'Chocolate', NULL, NULL, NULL, 'https://alpha.test/other'),
         (3, repeat('c', 64), 2, 'Bright', 'Floral orange', NULL, 20, 'USD', 'https://beta.test/bright');
     `);
+    await client.query(`INSERT INTO coffee_variety_dictionaries (version, sha256, document) VALUES ('coffee_variety_dictionary_v6', 'fixture', '{}');
+      INSERT INTO coffee_varieties VALUES ('coffee_variety_dictionary_v6', 'bourbon-127296f3', 'Bourbon', 'variety_label', '[]');
+      UPDATE coffee_products SET variety_dictionary_version = 'coffee_variety_dictionary_v6'`);
     await client.query(
       `UPDATE coffee_products SET origin_country_codes='["ET","ET"]', origin_continents='["africa"]', variety_ids='["bourbon-127296f3","bourbon-127296f3"]', roast_for='["filter","espresso"]', decaf=true WHERE id=9007199254740993`,
     );
@@ -77,8 +80,13 @@ test("catalogue SQL against an isolated PostgreSQL fixture schema", async () => 
     );
     assert.equal((await repo.coffees(query("variety=__empty__"))).total, 2);
     assert.equal(
-      (await repo.coffees(query("variety=bourbon-127296f3&variety=__empty__")))
-        .total,
+      (
+        await repo.coffees(
+          query(
+            "variety=coffee_variety_dictionary_v6:bourbon-127296f3&variety=__empty__",
+          ),
+        )
+      ).total,
       3,
     );
     assert.equal(
@@ -112,13 +120,17 @@ test("catalogue SQL against an isolated PostgreSQL fixture schema", async () => 
     }
     const varieties = await repo.facet(
       "coffees",
-      query("q=absent&variety=bourbon-127296f3"),
+      query("q=absent&variety=coffee_variety_dictionary_v6:bourbon-127296f3"),
       "variety",
       "no match",
       0,
     );
     assert.deepEqual(varieties.items, [
-      { value: "bourbon-127296f3", label: "Bourbon", count: 0 },
+      {
+        value: "coffee_variety_dictionary_v6:bourbon-127296f3",
+        label: "Bourbon",
+        count: 0,
+      },
     ]);
     assert.equal(
       (await repo.facet("coffees", query(), "variety", "Bourbon", 0)).items[0]
@@ -195,6 +207,37 @@ test("catalogue SQL against an isolated PostgreSQL fixture schema", async () => 
       countries: 2,
       roastersWithCoffee: 2,
     });
+    await client.query(`INSERT INTO coffee_variety_dictionaries (version, sha256, document) VALUES ('coffee_variety_dictionary_v7', 'other', '{}');
+      INSERT INTO coffee_varieties VALUES ('coffee_variety_dictionary_v7', 'bourbon-127296f3', 'Different label', 'group_label', '[]');
+      UPDATE coffee_products SET variety_dictionary_version='coffee_variety_dictionary_v7', variety_ids='["bourbon-127296f3","bourbon-127296f3"]', variety_unresolved='["Local name"]' WHERE id=2`);
+    assert.equal(
+      (await repo.coffee("2"))?.varieties[0]?.label,
+      "Different label",
+    );
+    assert.equal(
+      (await repo.coffee("9007199254740993"))?.varieties[0]?.label,
+      "Bourbon",
+    );
+    assert.deepEqual((await repo.coffee("2"))?.varietyUnresolved, [
+      "Local name",
+    ]);
+    for (const version of ["v6", "v7"]) {
+      const value = `coffee_variety_dictionary_${version}:bourbon-127296f3`;
+      assert.equal((await repo.coffees(query(`variety=${value}`))).total, 1);
+      assert.equal(
+        (await repo.facet("coffees", query(""), "variety", "", 0)).items.find(
+          (item) => item.value === value,
+        )?.count,
+        1,
+      );
+    }
+    await client.query(
+      `UPDATE coffee_products SET variety_dictionary_version='missing' WHERE id=2`,
+    );
+    assert.equal(
+      (await repo.coffee("2"))?.varieties[0]?.label,
+      "Name unavailable",
+    );
   } finally {
     await client.query("SET search_path TO public");
     await client.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);

@@ -36,8 +36,13 @@ const coffees: CoffeeDetail[] = Array.from({ length: 60 }, (_, i) => ({
     "Jasmine and peach.\nA delicate, floral coffee with a lingering finish.",
   originCountryCodes: i % 3 === 0 ? ["ET"] : i % 3 === 1 ? ["BR"] : null,
   originContinents: i % 3 === 1 ? ["africa"] : null,
+  varietyDictionaryVersion: "coffee_variety_dictionary_v6",
+  varietyUnresolved: null,
   varietyIds: i % 2 ? ["bourbon-127296f3"] : null,
-  varieties: i % 2 ? [{ id: "bourbon-127296f3", label: "Bourbon" }] : [],
+  varieties:
+    i % 2
+      ? [{ id: "bourbon-127296f3", label: "Bourbon", kind: "variety_label" }]
+      : [],
   roastFor: i % 3 === 0 ? ["filter"] : i % 3 === 1 ? ["espresso"] : null,
   decaf: i % 3 === 0,
 }));
@@ -45,7 +50,12 @@ function optionValues(item: Coffee | Roaster, key: FilterKey): string[] {
   if (!("varieties" in item)) return [value(item, key)];
   const c = item as CoffeeDetail;
   if (key === "origin") return originValues(c);
-  if (key === "variety") return c.varietyIds ?? ["__empty__"];
+  if (key === "variety")
+    return (
+      c.varietyIds?.map((id) => `${c.varietyDictionaryVersion}:${id}`) ?? [
+        "__empty__",
+      ]
+    );
   if (key === "roastFor") return c.roastFor ?? ["__empty__"];
   if (key === "decaf") return [c.decaf ? "yes" : "no"];
   return [value(item, key)];
@@ -130,7 +140,9 @@ function facet(
       const option = options.get(id) ?? {
         value: id,
         label: ["origin", "variety", "roastFor", "decaf"].includes(key)
-          ? attributeLabel(key, id)
+          ? key === "variety" && id !== "__empty__"
+            ? "Bourbon"
+            : attributeLabel(key, id)
           : label(item, key),
         count: 0,
       };

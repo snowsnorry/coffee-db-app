@@ -1,5 +1,5 @@
 import { originCountries } from "./originCountries.js";
-import { varietyNames } from "./varieties.js";
+import { MISSING_VARIETY } from "./varieties.js";
 import type { FilterKey } from "./types.js";
 export const EMPTY = "__empty__";
 export const attributeKeys = ["origin", "variety", "roastFor", "decaf"];
@@ -20,7 +20,7 @@ export function attributeLabel(key: FilterKey, value: string) {
     return value.startsWith("country:")
       ? (countries.of(value.slice(8)) ?? value.slice(8))
       : (continentNames[value.slice(10)] ?? value.slice(10));
-  if (key === "variety") return varietyNames[value] ?? value;
+  if (key === "variety") return MISSING_VARIETY;
   if (key === "decaf") return value === "yes" ? "Decaf" : "Not decaf";
   return (
     (
@@ -48,7 +48,14 @@ export function attributePredicate(
   } else if (key === "origin") {
     terms.push(...originTerms(selected, values, bind));
   } else {
-    if (values.length)
+    if (key === "variety") {
+      for (const value of values) {
+        const [version, id] = value.split(":");
+        terms.push(
+          `(coalesce(p.variety_dictionary_version, '') = ${bind(version)} AND p.variety_ids ? ${bind(id)})`,
+        );
+      }
+    } else if (values.length)
       terms.push(`${arrayColumn(key)} ?| ${bind(values)}::text[]`);
     if (selected.includes(EMPTY)) terms.push(emptyArray(arrayColumn(key)));
   }
@@ -62,6 +69,8 @@ export function attributeValuesSql(
 ) {
   if (key === "decaf")
     return "SELECT CASE WHEN p.decaf IS TRUE THEN 'yes' ELSE 'no' END AS value";
+  if (key === "variety")
+    return `SELECT DISTINCT CASE WHEN v.value = '${EMPTY}' THEN '${EMPTY}' ELSE coalesce(p.variety_dictionary_version, '') || ':' || v.value END AS value FROM jsonb_array_elements_text(CASE WHEN jsonb_typeof(p.variety_ids) = 'array' AND p.variety_ids <> '[]'::jsonb THEN p.variety_ids ELSE '["__empty__"]'::jsonb END) v WHERE v.value IS NOT NULL`;
   if (key !== "origin")
     return `SELECT DISTINCT jsonb_array_elements_text(CASE WHEN jsonb_typeof(${arrayColumn(key)}) = 'array' AND ${arrayColumn(key)} <> '[]'::jsonb THEN ${arrayColumn(key)} ELSE '["__empty__"]'::jsonb END) AS value`;
   const mapping: Record<string, string[]> = {};

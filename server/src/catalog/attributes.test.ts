@@ -9,12 +9,12 @@ import { parseQuery } from "./validation.js";
 import { mapCoffeeDetail } from "./mapping.js";
 import { createCatalogRepository, type QueryDatabase } from "./repository.js";
 import { originCountries } from "./originCountries.js";
-import { varietyNames } from "./varieties.js";
+
 const query = (s = "") => parseQuery(new URLSearchParams(s), "coffees");
 describe("coffee attributes", () => {
   it("validates repeated filters, empty values and catalogue boundaries", () => {
     const q = query(
-      "origin=continent:africa&origin=country:BR&origin=__empty__&variety=bourbon-127296f3&roastFor=omni&decaf=no",
+      "origin=continent:africa&origin=country:BR&origin=__empty__&variety=coffee_variety_dictionary_v6:bourbon-127296f3&roastFor=omni&decaf=no",
     );
     expect(q.filters.origin).toHaveLength(3);
     for (const raw of [
@@ -60,8 +60,12 @@ describe("coffee attributes", () => {
       "(p.decaf IS TRUE OR p.decaf IS NOT TRUE)",
     );
     expect(
-      attributePredicate("variety", ["__empty__", "bourbon-127296f3"], bind),
-    ).toContain("p.variety_ids ?| $1::text[] OR");
+      attributePredicate(
+        "variety",
+        ["__empty__", "coffee_variety_dictionary_v6:bourbon-127296f3"],
+        bind,
+      ),
+    ).toContain("p.variety_ids ? $1");
     expect(attributePredicate("roastFor", ["filter"], bind)).toContain(
       "p.roast_for",
     );
@@ -69,13 +73,14 @@ describe("coffee attributes", () => {
       expect(attributeValuesSql(key, bind)).toContain("SELECT");
   });
   it("uses canonical names and preserves future IDs", () => {
-    expect(Object.keys(varietyNames)).toHaveLength(900);
     expect(attributeLabel("origin", "country:ET")).toBe("Ethiopia");
     expect(attributeLabel("origin", "continent:africa")).toBe("Africa");
     expect(attributeLabel("origin", "continent:future")).toBe("future");
-    expect(attributeLabel("variety", "bourbon-127296f3")).toBe("Bourbon");
+    expect(attributeLabel("variety", "bourbon-127296f3")).toBe(
+      "Name unavailable",
+    );
     expect(attributeLabel("variety", "future-12345678")).toBe(
-      "future-12345678",
+      "Name unavailable",
     );
     expect(attributeLabel("roastFor", "omni")).toBe("Omni");
     expect(attributeLabel("roastFor", "future")).toBe("future");
@@ -84,26 +89,50 @@ describe("coffee attributes", () => {
   });
   it("searches mapped labels before pagination and retains selected zero counts", async () => {
     const db = {
-      query: vi.fn().mockResolvedValue({
-        rows: [
-          { value: "bourbon-127296f3", count: 3 },
-          ...Array.from({ length: 25 }, (_, i) => ({
-            value: `future-${i}`,
-            count: 1,
-          })),
-        ],
-      }),
+      query: vi.fn().mockImplementation(async (sql: string) =>
+        sql.includes("FROM coffee_varieties")
+          ? {
+              rows: [
+                {
+                  dictionary_version: "coffee_variety_dictionary_v6",
+                  id: "bourbon-127296f3",
+                  label: "Bourbon",
+                  kind: "variety_label",
+                },
+              ],
+            }
+          : {
+              rows: [
+                {
+                  value: "coffee_variety_dictionary_v6:bourbon-127296f3",
+                  count: 3,
+                },
+                ...Array.from({ length: 25 }, (_, i) => ({
+                  value: `future-${i}`,
+                  count: 1,
+                })),
+              ],
+            },
+      ),
     } as unknown as QueryDatabase;
     const result = await attributeFacet(
       db,
-      query("variety=unknown-12345678"),
+      query("variety=coffee_variety_dictionary_v6:unknown-12345678"),
       "variety",
       { search: "Bourbon", offset: 0 },
     );
     expect(result.items).toEqual(
       expect.arrayContaining([
-        { value: "bourbon-127296f3", label: "Bourbon", count: 3 },
-        { value: "unknown-12345678", label: "unknown-12345678", count: 0 },
+        {
+          value: "coffee_variety_dictionary_v6:bourbon-127296f3",
+          label: "Bourbon",
+          count: 3,
+        },
+        {
+          value: "coffee_variety_dictionary_v6:unknown-12345678",
+          label: "Name unavailable",
+          count: 0,
+        },
       ]),
     );
     expect(result.hasMore).toBe(false);
@@ -123,6 +152,8 @@ describe("coffee attributes", () => {
       name: "Floral",
       display_name: "R",
       country_code: "US",
+      variety_dictionary_version: "coffee_variety_dictionary_v6",
+      variety_unresolved: ["Local name"],
       variety_ids: ["bourbon-127296f3", "future-12345678", null],
       origin_country_codes: ["ET", "ET"],
       roast_for: [],
@@ -132,6 +163,16 @@ describe("coffee attributes", () => {
       query: vi
         .fn()
         .mockResolvedValueOnce({ rows: [row] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              dictionary_version: "coffee_variety_dictionary_v6",
+              id: "bourbon-127296f3",
+              label: "Bourbon",
+              kind: "variety_label",
+            },
+          ],
+        })
         .mockResolvedValue({ rows: [] }),
     };
     const repo = createCatalogRepository(db as unknown as QueryDatabase);
@@ -140,8 +181,8 @@ describe("coffee attributes", () => {
       originCountryCodes: ["ET"],
       originContinents: null,
       varieties: [
-        { id: "bourbon-127296f3", label: "Bourbon" },
-        { id: "future-12345678", label: "future-12345678" },
+        { id: "bourbon-127296f3", label: "Bourbon", kind: "variety_label" },
+        { id: "future-12345678", label: "Name unavailable", kind: null },
       ],
     });
     expect(db.query.mock.calls[0]?.[1]).toEqual([row.id]);

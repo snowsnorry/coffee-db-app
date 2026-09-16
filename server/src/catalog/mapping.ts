@@ -1,4 +1,4 @@
-import { varietyNames } from "./varieties.js";
+import { resolveVariety, varietyKey, type Variety } from "./varieties.js";
 import type { CoffeeDetail, Coffee, Roaster, RoasterSummary } from "./types.js";
 export type Row = Record<string, unknown>;
 export function safeUrl(value: unknown): string | null {
@@ -41,7 +41,10 @@ export function mapRoaster(row: Row): Roaster {
   };
 }
 
-export function mapCoffeeDetail(row: Row): CoffeeDetail {
+export function mapCoffeeDetail(
+  row: Row,
+  dictionary = new Map<string, Variety>(),
+): CoffeeDetail {
   const array = (value: unknown): string[] | null =>
     Array.isArray(value)
       ? [...new Set(value.filter((v): v is string => typeof v === "string"))]
@@ -53,10 +56,14 @@ export function mapCoffeeDetail(row: Row): CoffeeDetail {
     originCountryCodes: array(row.origin_country_codes),
     originContinents: array(row.origin_continents),
     varietyIds,
-    varieties: (varietyIds ?? []).map((id) => ({
-      id,
-      label: varietyNames[id] ?? id,
-    })),
+    varietyDictionaryVersion: nullable(row.variety_dictionary_version),
+    varietyUnresolved: array(row.variety_unresolved),
+    varieties: (varietyIds ?? []).map((id) =>
+      resolveVariety(
+        dictionary,
+        varietyKey(nullable(row.variety_dictionary_version), id),
+      ),
+    ),
     roastFor: array(row.roast_for),
     decaf: row.decaf === true,
   };

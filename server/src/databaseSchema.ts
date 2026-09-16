@@ -45,6 +45,22 @@ CREATE TABLE IF NOT EXISTS coffee_products (
 ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS origin_country_codes JSONB;
 ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS origin_continents JSONB;
 ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS variety_ids JSONB;
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS variety_dictionary_version TEXT;
+ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS variety_unresolved JSONB;
+CREATE TABLE IF NOT EXISTS coffee_variety_dictionaries (
+  version TEXT PRIMARY KEY,
+  sha256 TEXT NOT NULL,
+  document JSONB NOT NULL,
+  imported_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS coffee_varieties (
+  dictionary_version TEXT NOT NULL REFERENCES coffee_variety_dictionaries(version),
+  id TEXT NOT NULL,
+  label TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  aliases JSONB NOT NULL,
+  PRIMARY KEY (dictionary_version, id)
+);
 ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS roast_for JSONB;
 ALTER TABLE coffee_products ADD COLUMN IF NOT EXISTS decaf BOOLEAN;
 `;

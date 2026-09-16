@@ -18,7 +18,9 @@ test("origin filters combine countries and continents, and survive reload", asyn
     await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page).toHaveURL(/origin=continent%3Aafrica/);
   await expect(page).toHaveURL(/origin=country%3ABR/);
-  await expect(page).toHaveURL(/variety=bourbon/);
+  await expect(page).toHaveURL(
+    /variety=coffee_variety_dictionary_v6%3Abourbon/,
+  );
   await expect(
     page.getByRole("heading", { name: "20 coffees", exact: true }),
   ).toBeVisible();

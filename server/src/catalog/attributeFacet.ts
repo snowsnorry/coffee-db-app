@@ -1,3 +1,4 @@
+import { loadVarieties, resolveVariety } from "./varieties.js";
 import type { Pool } from "pg";
 import type { CatalogQuery, FilterKey } from "./types.js";
 import { attributeLabel, attributeValuesSql, EMPTY } from "./attributes.js";
@@ -14,9 +15,25 @@ export async function attributeFacet(
     `SELECT a.value, count(*)::int AS count ${fromSql("coffees")} CROSS JOIN LATERAL (${options}) a ${sql.where} GROUP BY a.value`,
     sql.values,
   );
+  const dictionary =
+    key === "variety"
+      ? await loadVarieties(
+          db,
+          [
+            ...new Set([
+              ...result.rows.map((row) => String(row.value)),
+              ...query.filters[key],
+            ]),
+          ].filter((value) => value !== EMPTY),
+        )
+      : new Map();
+  const label = (value: string) =>
+    key === "variety" && value !== EMPTY
+      ? resolveVariety(dictionary, value).label
+      : attributeLabel(key, value);
   const items = result.rows.map((row) => ({
     value: String(row.value),
-    label: attributeLabel(key, String(row.value)),
+    label: label(String(row.value)),
     count: Number(row.count),
   }));
   // Label lookup/search precedes pagination; dictionary counts never replace live counts.
@@ -25,7 +42,7 @@ export async function attributeFacet(
     ...(key === "decaf" ? ["yes", "no"] : [EMPTY]),
   ]) {
     if (!items.some((item) => item.value === value))
-      items.push({ value, label: attributeLabel(key, value), count: 0 });
+      items.push({ value, label: label(value), count: 0 });
   }
   items.sort(
     (a, b) =>

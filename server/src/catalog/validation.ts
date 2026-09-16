@@ -133,7 +133,7 @@ function validAttribute(key: FilterKey, value: string) {
         Object.hasOwn(originCountries, value.slice(10)))
     );
   if (key === "variety")
-    return /^[a-z0-9]+(?:-[a-z0-9]+)*-[a-f0-9]{8}$/.test(value);
+    return /^[a-zA-Z0-9_-]*:[a-z0-9]+(?:-[a-z0-9]+)*-[a-f0-9]{8}$/.test(value);
   if (key === "roastFor") return ["espresso", "filter", "omni"].includes(value);
   if (key === "decaf") return ["yes", "no"].includes(value);
 
